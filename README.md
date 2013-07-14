@@ -1,1 +1,1 @@
-"# roptool readme" 
+# roptool readme
