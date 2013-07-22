@@ -5,9 +5,19 @@
 // std
 #include <iostream>
 
+// boost
+#include <boost/bind.hpp>
+
 // namespace for ease of reading (and writing)
 namespace po = boost::program_options;
 
+
+void RopTool::set_target(const std::string& path)
+{
+    // setup target here
+    std::cout << "target!!!\n";
+}
+    
 RopTool::cmd_options RopTool::get_options(void)
 {
     // check if there are any options already created by this function
@@ -21,7 +31,9 @@ RopTool::cmd_options RopTool::get_options(void)
     m_options.reset(new po::options_description());
     
     m_options->add_options()
-        ("help,h", "Show this help dialog.");
+        ("help,h", "Show this help dialog.")
+        ("verbose,v", "Show verbose output.")
+        ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.");
         
     return m_options;
 }
@@ -44,6 +56,14 @@ int RopTool::start(int argc, char *argv[])
 			std::cout << *options.get() << std::endl;
 			return 1;
 		}
+        
+        // check for a target
+        if (!m_vm.count("target"))
+        {
+            // targets are required
+            std::cerr << "A target is required." << std::endl;
+            return 1;
+        }
     }
  
     // catch any exceptions
@@ -51,8 +71,7 @@ int RopTool::start(int argc, char *argv[])
     {
         // display the exception
         std::cerr << "Error: " << e.what() << std::endl;
-        std::cerr << "Use --target [target] --help for usage information for a target" << std::endl;
-        std::cerr << "Else, pass no args for generic usage" << std::endl;
+        std::cerr << "Use --help for usage information." << std::endl;
         return 1;
     }
     
