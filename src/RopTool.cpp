@@ -1,6 +1,7 @@
 
 // roptool
 #include "RopTool.h"
+#include "Debug.h"
 
 // std
 #include <iostream>
