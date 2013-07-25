@@ -22,17 +22,38 @@ namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
-        
+
+BOOST_FUSION_ADAPT_STRUCT(
+    FuncDecl,
+    (std::string, name)
+    (unsigned int, number)
+);
+
 template <typename Iterator>
-struct ropscript_grammar : qi::grammar<Iterator, std::string()>
+struct skip_grammar : qi::grammar<Iterator> 
 {
-    ropscript_grammar() : ropscript_grammar::base_type(simple2, "simple2")
+    skip_grammar() : skip_grammar::base_type(skipper) 
+    {
+        // skip lines
+        line_comment = (qi::lit("//") >> *(ascii::char_ - qi::eol) >> qi::eol);
+        block_comment = (qi::lit("/*") >> *(ascii::char_ - '*') >> +qi::lit('*') >> '/');
+        skipper = ascii::space | line_comment | block_comment;
+    }
+    
+    qi::rule<Iterator> line_comment;
+    qi::rule<Iterator> block_comment;
+    qi::rule<Iterator> skipper;
+};
+
+template <typename Iterator>
+struct ropscript_grammar : qi::grammar<Iterator, FuncDecl(), skip_grammar<Iterator>>
+{
+    ropscript_grammar() : ropscript_grammar::base_type(func_decl, "func_decl")
     {
         // define what is classed as an identifier
         // this will include function call names, variable names
         // symbol names and so forth
-        
-        simple2 = identifier > '=' > "rainbow";
+        func_decl = qi::lit("func") > identifier > '=' > number > ';';
         
         identifier =  qi::lexeme[letter >> *(letter | decimal_digit)];
         decimal = qi::int_;
@@ -44,10 +65,11 @@ struct ropscript_grammar : qi::grammar<Iterator, std::string()>
         letter = qi::char_("a-zA-Z_");
         decimal_digit = qi::char_("0-9");
         
+        // name the rules
+        func_decl.name("func_decl");
         identifier.name("identifier");  
         letter.name("letter");
         decimal_digit.name("decimal_digit");
-        simple2.name("simple2");
     }
     
     qi::rule<Iterator, char()> decimal_digit;
@@ -58,12 +80,14 @@ struct ropscript_grammar : qi::grammar<Iterator, std::string()>
     qi::rule<Iterator, int()> number;
     qi::rule<Iterator, std::string()> identifier;
     qi::rule<Iterator, std::string()> simple2;
+    qi::rule<Iterator, FuncDecl(), skip_grammar<Iterator>> func_decl;
+    qi::rule<Iterator, FuncDecl()> ropscript;
 };
 
 bool parse(const char *filename)
 {
     std::ifstream ifs;
-    std::string out;
+    FuncDecl out;
     
     // open file
     ifs.open(filename, std::ios_base::in);
@@ -91,13 +115,10 @@ bool parse(const char *filename)
     ropscript_grammar<pos_iterator_type> parser;
     bool r = false;
     
-    qi::rule<pos_iterator_type> line_comment = (qi::lit("//") >> *(ascii::char_ - qi::eol) >> qi::eol);
-    qi::rule<pos_iterator_type> block_comment = (qi::lit("/*") >> *(ascii::char_ - '*') >> +qi::lit('*') >> '/');
-    
     try
     {
         // parse the script file
-        r = qi::phrase_parse(position_begin, position_end, parser, ascii::space | line_comment | block_comment, out);
+        r = qi::phrase_parse(position_begin, position_end, parser, skip_grammar<pos_iterator_type>(), out);
     }
 
     // catch input expectation failure
@@ -109,14 +130,20 @@ bool parse(const char *filename)
         const classic::file_position_base<std::string>& pos = e.first.get_position();
        
         // construct error message for the exception
-        msg << "Parse error in file \"" << pos.file << "\""
-            << ", line " << pos.line << ", column " << pos.column << std::endl 
-            << "Expected: " << e.what_;
+        msg << pos.file << "(" << pos.line << "): " << "expected: " << e.what_;
             
         // throw exception
         throw std::runtime_error(msg.str());
     }
+    
+    // catch any exceptions
+    catch(std::exception& e) 
+    {
+        // display the exception
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false;
+    }
 
-    std::cout << "out: " << out << "\n";
+    std::cout << "out: " << out.name << " addr: " << out.number << "\n";
     return r;
 }
