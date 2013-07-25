@@ -1,6 +1,7 @@
 
 // roptool
 #include "RopTool.h"
+#include "Parser.h"
 #include "Debug.h"
 
 // std
@@ -11,12 +12,13 @@
 
 // namespace for ease of reading (and writing)
 namespace po = boost::program_options;
-
+std::string mytarget;
 
 void RopTool::set_target(const std::string& path)
 {
     // setup target here
     std::cout << "target!!!\n";
+    mytarget = path;
 }
     
 RopTool::cmd_options RopTool::get_options(void)
@@ -38,7 +40,7 @@ RopTool::cmd_options RopTool::get_options(void)
         
     return m_options;
 }
-        
+
 int RopTool::start(int argc, char *argv[])
 {
     // get commandline options
@@ -65,6 +67,9 @@ int RopTool::start(int argc, char *argv[])
             std::cerr << "A target is required." << std::endl;
             return 1;
         }
+        
+        bool res = parse(mytarget.c_str());
+        std::cout << "parse result: " << res << "\n";
     }
  
     // catch any exceptions
