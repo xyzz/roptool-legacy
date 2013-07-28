@@ -77,13 +77,25 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScript(), skip_grammar<Itera
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
         call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-        param = inline_load | quoted_string | number | identifier;
+        param = inline_load | quoted_string | expression | identifier;
         inline_load = qi::lexeme[qi::lit("LOAD") > qi::char_('[') > +(qi::char_ - ']') > qi::char_(']')];
         
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
         func_decl = qi::lit("func") > identifier > '=' > number > ';';
         symbol_decl = qi::lit("symbol") > identifier > '=' > (number | string)  > ';';
+
+        // mathematical expressions
+        expression = multiplicative_expr[qi::_val = qi::_1] >> 
+                    *(  ('+' >> multiplicative_expr[qi::_val += qi::_1]) |
+                        ('-' >> multiplicative_expr[qi::_val -= qi::_1]));
+        
+        multiplicative_expr = primary_expr[qi::_val = qi::_1] >>
+                    *(  ('*' >> primary_expr[qi::_val *= qi::_1]) |
+                        ('/' >> primary_expr[qi::_val /= qi::_1]));
+                        
+        primary_expr = number | ('(' > expression > ')');
+        
         
         // define what is classed as an identifier
         // this will include function call names, variable names
@@ -129,6 +141,12 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScript(), skip_grammar<Itera
     qi::rule<Iterator, CodeDecl(), skip_grammar<Iterator>> code_section;
     qi::rule<Iterator, RopScript(), skip_grammar<Iterator>> ropscript;
     qi::rule<Iterator, std::string(), skip_grammar<Iterator>> inline_load;
+    
+    
+    qi::rule<Iterator, int(), skip_grammar<Iterator>> primary_expr;
+    qi::rule<Iterator, int(), skip_grammar<Iterator>> multiplicative_expr;
+    qi::rule<Iterator, int(), skip_grammar<Iterator>> additive_expr;
+    qi::rule<Iterator, int(), skip_grammar<Iterator>> expression;
 };
 
 bool parse(const char *filename)
@@ -172,13 +190,12 @@ bool parse(const char *filename)
     catch (const qi::expectation_failure<pos_iterator_type>& e)
     {
         std::stringstream msg;
-        
+        std::string got(e.first, position_end);
         // get the position of the iterator relative to the file
         const classic::file_position_base<std::string>& pos = e.first.get_position();
        
         // construct error message for the exception
-        msg << pos.file << "(" << pos.line << "): " << "expected: " << e.what_;
-            
+        msg << pos.file << "(" << pos.line << "): " << "expected: " << e.what_ << " got:" << got;
         // throw exception
         throw std::runtime_error(msg.str());
     }
