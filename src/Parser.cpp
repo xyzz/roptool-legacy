@@ -77,7 +77,8 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScript(), skip_grammar<Itera
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
         call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-        param = quoted_string | number | identifier;
+        param = inline_load | quoted_string | number | identifier;
+        inline_load = qi::lexeme[qi::lit("LOAD") > qi::char_('[') > +(qi::char_ - ']') > qi::char_(']')];
         
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
@@ -127,6 +128,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScript(), skip_grammar<Itera
     qi::rule<Iterator, CallDecl(), skip_grammar<Iterator>> call_decl;
     qi::rule<Iterator, CodeDecl(), skip_grammar<Iterator>> code_section;
     qi::rule<Iterator, RopScript(), skip_grammar<Iterator>> ropscript;
+    qi::rule<Iterator, std::string(), skip_grammar<Iterator>> inline_load;
 };
 
 bool parse(const char *filename)
