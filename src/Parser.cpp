@@ -1,4 +1,3 @@
-
 #include "Parser.h"
 
 #include <vector>
@@ -14,6 +13,7 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 
@@ -23,7 +23,7 @@ namespace classic = boost::spirit::classic;
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
-namespace phoenix = boost::phoenix;
+namespace phx = boost::phoenix;
 
 BOOST_FUSION_ADAPT_STRUCT(
     DataDecl,
@@ -48,6 +48,15 @@ BOOST_FUSION_ADAPT_STRUCT(
     (DataDecl, data)
     (CodeDecl, code)
 );
+
+struct numeric_symbols : qi::symbols<char, int>
+{
+    numeric_symbols()
+    {
+
+    }
+
+} g_numeric_symbols;
 
 template <typename Iterator>
 struct skip_grammar : qi::grammar<Iterator> 
@@ -190,7 +199,9 @@ bool parse(const char *filename)
     catch (const qi::expectation_failure<pos_iterator_type>& e)
     {
         std::stringstream msg;
-        std::string got(e.first, position_end);
+        std::string got = std::string(e.first, e.last);
+        //std::getline(e.first, got);
+        
         // get the position of the iterator relative to the file
         const classic::file_position_base<std::string>& pos = e.first.get_position();
        
