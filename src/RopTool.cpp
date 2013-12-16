@@ -12,13 +12,11 @@
 
 // namespace for ease of reading (and writing)
 namespace po = boost::program_options;
-std::string mytarget;
 
-void RopTool::set_target(const std::string& path)
+void RopTool::set_target(const std::string& target)
 {
-    // setup target here
-    std::cout << "target!!!\n";
-    mytarget = path;
+    // \TODO: verify target
+    this->target = target;
 }
     
 RopTool::cmd_options RopTool::get_options(void)
@@ -53,12 +51,12 @@ int RopTool::start(int argc, char *argv[])
         po::notify(m_vm);
         
         // check for no args or the help
-		if (m_vm.size() == 0 || m_vm.count("help"))
-		{
-			// show help
-			std::cout << *options.get() << std::endl;
-			return 1;
-		}
+        if (m_vm.size() == 0 || m_vm.count("help"))
+        {
+            // show help
+            std::cout << *options.get() << std::endl;
+            return 1;
+        }
         
         // check for a target
         if (!m_vm.count("target"))
@@ -68,7 +66,7 @@ int RopTool::start(int argc, char *argv[])
             return 1;
         }
         
-        bool res = parse(mytarget.c_str());
+        bool res = parse(target.c_str());
         std::cout << "parse result: " << res << "\n";
     }
  
