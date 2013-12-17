@@ -158,10 +158,10 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScript(), skip_grammar<Itera
     qi::rule<Iterator, int(), skip_grammar<Iterator>> expression;
 };
 
-bool parse(const char *filename)
+RopScriptShared parse(const char *filename)
 {
     std::ifstream ifs;
-    RopScript out;
+    RopScriptShared out(new RopScript);
     
     // open file
     ifs.open(filename, std::ios_base::in);
@@ -192,7 +192,7 @@ bool parse(const char *filename)
     try
     {
         // parse the script file
-        r = qi::phrase_parse(position_begin, position_end, parser, skip_grammar<pos_iterator_type>(), out);
+        r = qi::phrase_parse(position_begin, position_end, parser, skip_grammar<pos_iterator_type>(), *out);
     }
 
     // catch input expectation failure
@@ -211,27 +211,24 @@ bool parse(const char *filename)
         throw std::runtime_error(msg.str());
     }
     
-    // catch any exceptions
-    catch(std::exception& e) 
+    if (r == false)
     {
-        // display the exception
-        std::cerr << "Error: " << e.what() << std::endl;
-        return false;
+        throw std::runtime_error("problem parsing file");
     }
 
     std::cout << "data:\n";
-    std::for_each(out.data.functions.begin(), out.data.functions.end(), [=](const func_pair& p)
+    std::for_each(out->data.functions.begin(), out->data.functions.end(), [=](const func_pair& p)
     {
         std::cout << "\tfunction: " << p.first << " address: " << p.second << "\n";
     });
  
-    std::for_each(out.data.symbols.begin(), out.data.symbols.end(), [=](const symbol_pair& p)
+    std::for_each(out->data.symbols.begin(), out->data.symbols.end(), [=](const symbol_pair& p)
     {
         std::cout << "\tsymbol: " << p.first << " value: " << p.second << "\n";
     });
     
-    std::cout << "code: " << out.code.name << "\n";
-    std::for_each(out.code.call_list.begin(), out.code.call_list.end(), [=](const CallDecl& p)
+    std::cout << "code: " << out->code.name << "\n";
+    std::for_each(out->code.call_list.begin(), out->code.call_list.end(), [=](const CallDecl& p)
     {
         std::cout << "\tcall: " << p.callee << "\n";
         std::cout << "\tparams: " << p.parameter_list.size() << "\n";
@@ -241,5 +238,5 @@ bool parse(const char *filename)
         });
     });
     
-    return r;
+    return out;
 }

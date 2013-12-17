@@ -41,6 +41,7 @@ typedef struct
     CodeDecl code;
 } RopScript;
 
-bool parse(const char *name);
+typedef std::shared_ptr<RopScript> RopScriptShared;
+RopScriptShared parse(const char *name);
 
 #endif // _PARSER_H_

@@ -19,9 +19,11 @@ class RopTool
         // setup the command line options
         cmd_options get_options(void);
         void set_target(const std::string& target);
+        void set_source(const std::string& source);
         
         // variables
         std::string target;
+        std::string source;
         
         // we have a variable map and options
         boost::program_options::variables_map m_vm;

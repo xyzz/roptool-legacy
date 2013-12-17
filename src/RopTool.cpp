@@ -18,7 +18,13 @@ void RopTool::set_target(const std::string& target)
     // \TODO: verify target
     this->target = target;
 }
-    
+
+void RopTool::set_source(const std::string& source)
+{
+    // \TODO: verify source
+    this->source = source;
+}
+
 RopTool::cmd_options RopTool::get_options(void)
 {
     // check if there are any options already created by this function
@@ -34,7 +40,8 @@ RopTool::cmd_options RopTool::get_options(void)
     m_options->add_options()
         ("help,h", "Show this help dialog.")
         ("verbose,v", "Show verbose output.")
-        ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.");
+        ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.")
+        ("source,s", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_source, this, _1)), "Source ropscript file to compile.");
         
     return m_options;
 }
@@ -66,8 +73,18 @@ int RopTool::start(int argc, char *argv[])
             return 1;
         }
         
-        bool res = parse(target.c_str());
-        std::cout << "parse result: " << res << "\n";
+        // check for source
+        if (!m_vm.count("source"))
+        {
+            // need a source file
+            std::cerr << "A source file is required." << std::endl;
+            return 1;
+        }
+        
+        RopScriptShared script = parse(source.c_str());
+        
+        // create compiler
+        //Compiler compiler(target, 
     }
  
     // catch any exceptions
