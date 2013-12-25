@@ -40,6 +40,7 @@ void CodeDecl::traverse(ASTVisitor *visitor)
     traverse_tree(calls(), visitor);
 }
 
+template<>
 void FunctionDataDecl::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
