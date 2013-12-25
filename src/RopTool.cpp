@@ -82,13 +82,10 @@ int RopTool::start(int argc, char *argv[])
             return 1;
         }
         
-        RopScriptShared script = parse(source.c_str());
+        RopScriptShared ast = parse(source.c_str());
 		
-		Compiler *compiler = new Compiler();
-		
-		script->traverse(compiler);
-		
-		delete compiler;
+		Compiler compiler;
+		compiler.setAST(ast);
     }
  
     // catch any exceptions

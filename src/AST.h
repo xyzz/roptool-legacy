@@ -153,5 +153,6 @@ class RopScript : public ASTVisitable
 };
 
 typedef std::shared_ptr<RopScript> RopScriptShared;
+typedef std::shared_ptr<ASTVisitable> VisitablePtr;
 
 #endif //_AST_H_

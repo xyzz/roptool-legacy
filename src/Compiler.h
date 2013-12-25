@@ -8,10 +8,10 @@ class Compiler : public ASTVisitor
 	public:
 		// CTOR
 		Compiler(void) { }
-		Compiler(RopScriptShared ast) { setAST(ast); }
+		Compiler(VisitablePtr ast) { setAST(ast); }
 		
 		// set ast
-		void setAST(RopScriptShared ast) { m_ast = ast; }
+		void setAST(VisitablePtr ast) { m_ast = ast; }
 		
 		// visitor methods
 		void visit(CallParameter *param);
@@ -23,7 +23,7 @@ class Compiler : public ASTVisitor
         void visit(RopScript *param);
 
 	private:
-		RopScriptShared m_ast;
+		VisitablePtr m_ast;
 };
 
 #endif // _COMPILER_H_
