@@ -1,5 +1,8 @@
 #include "AST.h"
 
+// std
+#include <algorithm>
+
 namespace 
 {
     template<typename T>
