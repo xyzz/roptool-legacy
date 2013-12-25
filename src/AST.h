@@ -3,6 +3,7 @@
 
 // std
 #include <string>
+#include <memory>
 #include <vector>
 #include <map>
 
