@@ -47,6 +47,7 @@ void FunctionDataDecl::traverse(ASTVisitor *visitor)
     visitor->visit(this);
 }
 
+template<>
 void SymbolDataDecl::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
