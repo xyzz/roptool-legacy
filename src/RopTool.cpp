@@ -2,6 +2,7 @@
 // roptool
 #include "RopTool.h"
 #include "Parser.h"
+#include "Compiler.h"
 #include "Debug.h"
 
 // std
@@ -82,9 +83,12 @@ int RopTool::start(int argc, char *argv[])
         }
         
         RopScriptShared script = parse(source.c_str());
-        
-        // create compiler
-        //Compiler compiler(target, 
+		
+		Compiler *compiler = new Compiler();
+		
+		script->traverse(compiler);
+		
+		delete compiler;
     }
  
     // catch any exceptions
