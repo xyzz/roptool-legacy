@@ -25,6 +25,8 @@ class XmlTargetManifest : public TargetManifest
 		const std::string& version(void) { return m_version; }
 		
 	private:
+		class XmlTargetManifestVisitor;
+		std::unique_ptr<XmlTargetManifestVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
 		std::string m_version;
 };
