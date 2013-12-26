@@ -17,6 +17,9 @@ class FolderTarget : public Target
 		const std::string& name(void) { return m_name; }
 		void setName(const std::string& name) { m_name = name; }
 		
+		// 
+		TargetManifestPtr manifest(void);
+		
 	private:
 		std::string m_name;
 };

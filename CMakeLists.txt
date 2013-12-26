@@ -23,6 +23,6 @@ ADD_SUBDIRECTORY (tinyxml2)
 
 FILE (GLOB ROPTOOL_SOURCES "src/*.cpp")                                                                              
 ADD_EXECUTABLE (roptool ${ROPTOOL_SOURCES})
-TARGET_LINK_LIBRARIES (roptool ${Boost_LIBRARIES}) 
+TARGET_LINK_LIBRARIES (roptool ${Boost_LIBRARIES} tinyxml2) 
 
 add_dependencies(roptool tinyxml2)

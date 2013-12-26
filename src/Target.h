@@ -1,6 +1,9 @@
 #ifndef _TARGET_H_
 #define _TARGET_H_
 
+// roptool
+#include "TargetManifest.h"
+
 // std
 #include <string>
 #include <memory>
@@ -10,8 +13,9 @@ class Target
 	public:
 		virtual const std::string& name(void) = 0;
 		virtual void setName(const std::string& name) = 0;
-		/*TargetManifestPtr manifest(void) = 0;
-		GadgetMapList gadgetMaps(void) = 0;
+		virtual TargetManifestPtr manifest(void) = 0;
+		
+		/* GadgetMapList gadgetMaps(void) = 0;
 		GadgetList gadgets(void) = 0; */
 };
 
