@@ -1,6 +1,9 @@
 #ifndef _ROPTOOL_H_
 #define _ROPTOOL_H_
 
+// roptool
+#include "Target.h"
+
 // boost
 #include <boost/program_options.hpp>
 
@@ -22,7 +25,7 @@ class RopTool
         void set_source(const std::string& source);
         
         // variables
-        std::string target;
+        TargetPtr target;
         std::string source;
         
         // we have a variable map and options

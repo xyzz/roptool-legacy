@@ -1,7 +1,7 @@
-
 // roptool
 #include "RopTool.h"
 #include "Parser.h"
+#include "FolderTarget.h"
 #include "Compiler.h"
 #include "Debug.h"
 
@@ -16,8 +16,8 @@ namespace po = boost::program_options;
 
 void RopTool::set_target(const std::string& target)
 {
-    // \TODO: verify target
-    this->target = target;
+	// create target
+	this->target.reset(new FolderTarget(target));
 }
 
 void RopTool::set_source(const std::string& source)
@@ -86,6 +86,8 @@ int RopTool::start(int argc, char *argv[])
 		
 		Compiler compiler;
 		compiler.setAST(ast);
+		
+		std::cout << "TARGET: " << target->name();
     }
  
     // catch any exceptions
