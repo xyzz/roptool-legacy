@@ -14,9 +14,15 @@ ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 SET(Boost_USE_STATIC_LIBS   ON)
 FIND_PACKAGE (Boost REQUIRED COMPONENTS program_options REQUIRED)
 
-INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS} )
-LINK_DIRECTORIES (${Boost_LIBRARY_DIRS})
+INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR}/tinyxml2)
+LINK_DIRECTORIES (${Boost_LIBRARY_DIRS} ${CMAKE_CURRENT_LIST_DIR}/tinyxml2)
+
+# we want to build static lib
+SET(BUILD_STATIC_LIBS ON)
+ADD_SUBDIRECTORY (tinyxml2)
 
 FILE (GLOB ROPTOOL_SOURCES "src/*.cpp")                                                                              
 ADD_EXECUTABLE (roptool ${ROPTOOL_SOURCES})
 TARGET_LINK_LIBRARIES (roptool ${Boost_LIBRARIES}) 
+
+add_dependencies(roptool tinyxml2)
