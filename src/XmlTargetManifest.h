@@ -16,11 +16,13 @@ namespace tinyxml2
 class XmlTargetManifest : public TargetManifest
 {
 	public:
-		XmlTargetManifest();
-		~XmlTargetManifest();
+		XmlTargetManifest(void);
+		~XmlTargetManifest(void);
+		
+		// file setting
+		bool parseFile(const std::string& file);
 		
 		const std::string& version(void) { return m_version; }
-		bool setFile(const std::string& file);
 		
 	private:
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
