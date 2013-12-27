@@ -5,7 +5,7 @@ PROJECT (roptool)
 ##
 ## Project requires C++11
 IF (CMAKE_COMPILER_IS_GNUCXX)
-    SET (CMAKE_CXX_FLAGS "-std=c++11 -fpermissive")
+    SET (CMAKE_CXX_FLAGS "-std=c++11 -fpermissive -static-libstdc++")
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 ###########################################################
