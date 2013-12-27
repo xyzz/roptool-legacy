@@ -2,33 +2,19 @@
 #include "XmlTargetManifest.h"
 
 // std
+#include <algorithm>
+#include <functional>
+#include <vector>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 
 // tinyxml2
 #include <tinyxml2.h>
 
-/*
-std::string read_file(const std::string& file)
-{
-	std::ifstream in(filename, std::ios::in | std::ios::binary);
-	
-	if (!in)
-	{
-		// \TODO create error message
-		// could not open file
-		throw std::runtime_error("Could not open manifest file.");
-	}
-	
-	std::string contents;
-	in.seekg(0, std::ios::end);
-	contents.resize(in.tellg());
-	in.seekg(0, std::ios::beg);
-	in.read(&contents[0], contents.size());
-	in.close();
-	
-	return contents;
-} */
+
+typedef std::function<void(const std::string&)> VisitorAction;
+
 class XmlTargetManifest::XmlTargetManifestVisitor : public tinyxml2::XMLVisitor
 {
 	public:
@@ -37,57 +23,85 @@ class XmlTargetManifest::XmlTargetManifestVisitor : public tinyxml2::XMLVisitor
 		// get/set manifest
 		void setManifest(XmlTargetManifest *manifest) { m_manifest = manifest; }
 		XmlTargetManifest *manifest(void) { return m_manifest; }
+
+		// add handler
+		void addHandler(const std::string& event, VisitorAction f)
+		{
+			m_actions[event] = f;
+		}
 		
 		bool VisitEnter(const tinyxml2::XMLDocument& doc)
 		{
-			std::cout << "VISIT DOC\n";
+			//std::cout << "VISIT DOC\n";
 			return true;
 		}
 		
 		bool VisitExit(const tinyxml2::XMLDocument& doc)
 		{
-			std::cout << "EXIT DOC\n";
+			//std::cout << "EXIT DOC\n";
 			return true;
 		}
 		
 		bool VisitEnter(const tinyxml2::XMLElement &ele, const tinyxml2::XMLAttribute *attr)
 		{
-			std::cout << "enter element: \"" << ele.Name() << "\"\n";// << attr->Name() << std::endl;
+			//std::cout << "enter element: \"" << ele.Name() << "\"\n";// << attr->Name() << std::endl;
+			//manifest->set
+			m_stack.push_back(ele.Name());
 			return true;
 		}
 		
 		bool VisitExit(const tinyxml2::XMLElement &ele)
 		{
-			std::cout << "exit element: " << ele.Name() << std::endl;
+			//std::cout << "exit element: " << ele.Name() << std::endl;
+			m_stack.pop_back();
 			return true;
 		}		
 
 		bool Visit(const tinyxml2::XMLDeclaration& decl)
 		{
-			std::cout << "xml decl\n";
+			//std::cout << "xml decl\n";
 			return true;
 		}
 		
 		bool Visit(const tinyxml2::XMLText& text)
 		{
-			std::cout << "xml text: \"" << text.Value() << "\"\n";
+			std::string action;
+			std::for_each(m_stack.begin(), m_stack.end(), [=, &action](const std::string& str)
+			{
+				action.append(str);
+				action.append("-");
+			});
+			
+			action.pop_back();
+			
+			try
+			{
+				m_actions.at(action)(text.Value());
+			}
+			catch (const std::out_of_range& e)
+			{
+				// ignore
+			}
+			
 			return true;
 		}
 		
 		bool Visit(const tinyxml2::XMLComment& comment)
 		{
-			std::cout << "xml comment\n";
+			//std::cout << "xml comment\n";
 			return true;
 		}
 		
 		bool Visit(const tinyxml2::XMLUnknown& unknown)
 		{
-			std::cout << "xml unk\n";
+			//std::cout << "xml unk\n";
 			return true;
 		}
 		
 	private:
 		XmlTargetManifest *m_manifest;
+		std::vector<std::string> m_stack;
+		std::map<std::string, VisitorAction> m_actions;
 };
 
 bool XmlTargetManifest::parseFile(const std::string& target)
@@ -112,13 +126,25 @@ bool XmlTargetManifest::parseFile(const std::string& target)
 	return true;
 }
 
+void XmlTargetManifest::set_version(const std::string& version)
+{
+	std::cout << "setting version: \"" << version << "\"\n";
+}
+
 XmlTargetManifest::XmlTargetManifest(void)
 {
+	using namespace std::placeholders;
+	
 	// create visitor
 	m_visitor.reset(new XmlTargetManifestVisitor());
 	
 	// set the manifest
 	m_visitor->setManifest(this);
+	
+	// add handlers
+	VisitorAction set_version = std::bind(&XmlTargetManifest::set_version, this, _1);
+	m_visitor->addHandler("version", set_version);
+	
 }
 
 XmlTargetManifest::~XmlTargetManifest(void)

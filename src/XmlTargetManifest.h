@@ -29,6 +29,8 @@ class XmlTargetManifest : public TargetManifest
 		std::unique_ptr<XmlTargetManifestVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
 		std::string m_version;
+		
+		void set_version(const std::string& version);
 };
 
 typedef std::shared_ptr<XmlTargetManifest> XmlTargetManifestPtr;
