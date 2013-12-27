@@ -8,6 +8,14 @@
 #include <string>
 #include <memory>
 
+// boost
+#include <boost/filesystem.hpp>
+
+// windows
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 class Target
 {
 	public:
@@ -17,6 +25,20 @@ class Target
 		
 		/* GadgetMapList gadgetMaps(void) = 0;
 		GadgetList gadgets(void) = 0; */
+	
+	protected:
+		std::string target_folder(void)
+		{
+			char data[256];
+			memset(data, 0, sizeof(data));
+#ifdef _WIN32
+			GetModuleFileName(NULL, &data[0], sizeof(data));
+#elif defined __linux__
+			readlink("/proc/self/exe", data, sizeof(data));
+#endif
+
+			return boost::filesystem::path(data).parent_path().string()+"/pkg";
+		}
 };
 
 typedef std::shared_ptr<Target> TargetPtr;

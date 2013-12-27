@@ -15,13 +15,14 @@ class FolderTarget : public Target
 		
 		// accessor/mutator
 		const std::string& name(void) { return m_name; }
-		void setName(const std::string& name) { m_name = name; }
+		void setName(const std::string& name);
 		
 		// 
-		TargetManifestPtr manifest(void);
+		TargetManifestPtr manifest(void) { return m_manifest; }
 		
 	private:
 		std::string m_name;
+		TargetManifestPtr m_manifest;
 };
 
 #endif // _FOLDER_TARGET_H_

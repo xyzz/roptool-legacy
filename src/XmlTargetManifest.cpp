@@ -52,13 +52,13 @@ class XmlTargetManifest::XmlTargetManifestVisitor : public tinyxml2::XMLVisitor
 		
 		bool VisitEnter(const tinyxml2::XMLElement &ele, const tinyxml2::XMLAttribute *attr)
 		{
-			std::cout << "enter element: " << ele.GetText() << " attr: " << attr->Name() << std::endl;
+			std::cout << "enter element: \"" << ele.Name() << "\"\n";// << attr->Name() << std::endl;
 			return true;
 		}
 		
 		bool VisitExit(const tinyxml2::XMLElement &ele)
 		{
-			std::cout << "exit element: " << ele.GetText() << std::endl;
+			std::cout << "exit element: " << ele.Name() << std::endl;
 			return true;
 		}		
 
@@ -70,7 +70,7 @@ class XmlTargetManifest::XmlTargetManifestVisitor : public tinyxml2::XMLVisitor
 		
 		bool Visit(const tinyxml2::XMLText& text)
 		{
-			std::cout << "xml text\n";
+			std::cout << "xml text: \"" << text.Value() << "\"\n";
 			return true;
 		}
 		
@@ -90,10 +90,11 @@ class XmlTargetManifest::XmlTargetManifestVisitor : public tinyxml2::XMLVisitor
 		XmlTargetManifest *m_manifest;
 };
 
-bool XmlTargetManifest::parseFile(const std::string& file)
+bool XmlTargetManifest::parseFile(const std::string& target)
 {
 	// read file
 	//std::string xml = read_file(file);
+	std::string file = target + "/manifest.xml";
 	
 	// create new XML document
 	m_xmldoc.reset(new tinyxml2::XMLDocument);
@@ -103,7 +104,7 @@ bool XmlTargetManifest::parseFile(const std::string& file)
 	{
 		// \TODO: better error message
 		// error reading file
-		throw std::runtime_error("Could not open manifest file.");
+		throw std::runtime_error(std::string("Could not open manifest file: ") + file);
 	}
 	
 	// use visitor through XML

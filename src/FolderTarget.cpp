@@ -2,11 +2,14 @@
 #include "FolderTarget.h"
 #include "XmlTargetManifest.h"
 
-TargetManifestPtr FolderTarget::manifest(void)
+void FolderTarget::setName(const std::string& name)
 {
+	// set name
+	m_name = name;
+	
 	// create new manifest based off XML
-	TargetManifestPtr manifest(new XmlTargetManifest);
+	m_manifest.reset(new XmlTargetManifest);
 
-	// \TODO: do things
-	return manifest;
+	// parse the manifest
+	m_manifest->parseFile(target_folder()+"/"+name);
 }
