@@ -45,7 +45,7 @@ XmlGadget::XmlGadget(void)
 	m_visitor.reset(new XmlActionVisitor());
 	
 	// add handlers
-	m_visitor->addHandler("address", std::bind(&XmlGadget::set_address, this, _1));
+	m_visitor->addHandler("address", std::bind(&XmlGadget::set_address, this, _1), true);
 }
 
 XmlGadget::~XmlGadget(void)

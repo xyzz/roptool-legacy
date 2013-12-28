@@ -40,7 +40,7 @@ void FolderTarget::readGadgets(void)
 		{
 			// parse gadget
 			gadget->parse(p.string());
-			std::cout << "gadget: " << p.string() << std::endl;
+			std::cout << "gadget: " << gadget->address() << std::endl;
 		}
 		
 		// add to list
