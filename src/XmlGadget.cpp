@@ -2,6 +2,7 @@
 #include "XmlGadget.h"
 
 // std
+#include <cstdlib>
 #include <stdexcept>
 
 // tinyxml2
@@ -25,6 +26,17 @@ bool XmlGadget::parse(const std::string& file)
 	return true;
 }
 
+int XmlGadget::address(void)
+{
+	return m_address;
+}
+
+void XmlGadget::set_address(const std::string& address)
+{
+	// use strtoul for conversion.
+	m_address = std::strtoul(address.c_str(), NULL, 0);
+}
+
 XmlGadget::XmlGadget(void)
 {
 	using namespace std::placeholders;
@@ -33,6 +45,7 @@ XmlGadget::XmlGadget(void)
 	m_visitor.reset(new XmlActionVisitor());
 	
 	// add handlers
+	m_visitor->addHandler("address", std::bind(&XmlGadget::set_address, this, _1));
 }
 
 XmlGadget::~XmlGadget(void)

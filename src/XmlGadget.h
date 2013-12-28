@@ -23,9 +23,14 @@ class XmlGadget : public Gadget
 		
 		bool parse(const std::string& file);
 		
+		int address(void);
+		void set_address(const std::string& str_address);
+		
 	private:
 		std::unique_ptr<XmlActionVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
+		
+		int m_address;
 };
 
 typedef std::shared_ptr<XmlGadget> XmlGadgetPtr;
