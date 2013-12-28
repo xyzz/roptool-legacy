@@ -1,19 +1,13 @@
 // roptool
-#include "XmlTargetManifest.h"
-#include "XmlActionVisitor.h"
+#include "XmlGadget.h"
 
 // std
-#include <algorithm>
-#include <functional>
-#include <vector>
-#include <iostream>
-#include <map>
 #include <stdexcept>
 
 // tinyxml2
 #include <tinyxml2.h>
 
-bool XmlTargetManifest::parse(const std::string& file)
+bool XmlGadget::parse(const std::string& file)
 {
 	// create new XML document
 	m_xmldoc.reset(new tinyxml2::XMLDocument);
@@ -31,12 +25,7 @@ bool XmlTargetManifest::parse(const std::string& file)
 	return true;
 }
 
-void XmlTargetManifest::set_version(const std::string& version)
-{
-	std::cout << "setting version: \"" << version << "\"\n";
-}
-
-XmlTargetManifest::XmlTargetManifest(void)
+XmlGadget::XmlGadget(void)
 {
 	using namespace std::placeholders;
 	
@@ -44,11 +33,9 @@ XmlTargetManifest::XmlTargetManifest(void)
 	m_visitor.reset(new XmlActionVisitor());
 	
 	// add handlers
-	VisitorAction set_version = std::bind(&XmlTargetManifest::set_version, this, _1);
-	m_visitor->addHandler("version", set_version);
 }
 
-XmlTargetManifest::~XmlTargetManifest(void)
+XmlGadget::~XmlGadget(void)
 {
 
 }

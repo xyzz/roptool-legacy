@@ -3,6 +3,7 @@
 
 // roptool
 #include "TargetManifest.h"
+#include "XmlActionVisitor.h"
 
 // std
 #include <memory>
@@ -20,13 +21,12 @@ class XmlTargetManifest : public TargetManifest
 		~XmlTargetManifest(void);
 		
 		// file setting
-		bool parseFile(const std::string& file);
+		bool parse(const std::string& file);
 		
 		const std::string& version(void) { return m_version; }
 		
 	private:
-		class XmlTargetManifestVisitor;
-		std::unique_ptr<XmlTargetManifestVisitor> m_visitor;
+		std::unique_ptr<XmlActionVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
 		std::string m_version;
 		
