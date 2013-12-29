@@ -200,7 +200,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
         func_decl = qi::lit("func") > identifier > '='> number > ';';
-        symbol_decl = qi::lit("symbol") > identifier > '=' > (number | string)  > ';';
+        symbol_decl = qi::lit("symbol") > identifier > '=' > (number | identifier)  > ';';
 
         // mathematical expressions
         expression = multiplicative_expr[qi::_val = qi::_1] >> 

@@ -31,8 +31,10 @@ class ASTVisitor
 {
     public:
         virtual void visit(CallParameter *param) = 0;
-        virtual void visit(CallDecl *param) = 0;
-        virtual void visit(CodeDecl *param) = 0;
+        virtual void visit_enter(CallDecl *param) = 0;
+        virtual void visit_exit(CallDecl *param) = 0;
+        virtual void visit_enter(CodeDecl *param) = 0;
+        virtual void visit_exit(CodeDecl *param) = 0;
         virtual void visit(FunctionDataDecl *param) = 0;
         virtual void visit(SymbolDataDecl *param) = 0;
         virtual void visit(DataDecl *param) = 0;

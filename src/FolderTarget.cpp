@@ -67,7 +67,6 @@ void FolderTarget::readGadgetMaps(void)
 			// parse gadgetmap
 			gadgetmap->addGadgets(m_gadgets);
 			gadgetmap->parse(p.string());
-			gadgetmap->stack();
 			std::cout << "gadgetmap\n";
 		}
 		

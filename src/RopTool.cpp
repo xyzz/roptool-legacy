@@ -85,8 +85,7 @@ int RopTool::start(int argc, char *argv[])
         RopScriptShared ast = parse(source.c_str());
 		
 		Compiler compiler;
-		compiler.setAST(ast);
-		
+		compiler.compile(ast, target);
 		std::cout << "TARGET: " << target->name();
     }
  

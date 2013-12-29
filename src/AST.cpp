@@ -25,19 +25,25 @@ void CallParameter::traverse(ASTVisitor *visitor)
 void CallDecl::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
-    visitor->visit(this);
+    visitor->visit_enter(this);
     
     // pass on traversal to parameters
     traverse_tree(parameters(), visitor);
+	
+	// notify visitor
+	visitor->visit_exit(this);
 }
 
 void CodeDecl::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
-    visitor->visit(this);
+    visitor->visit_enter(this);
     
     // pass on traversal to calls
     traverse_tree(calls(), visitor);
+	
+	// notify visitor
+	visitor->visit_exit(this);
 }
 
 template<>
