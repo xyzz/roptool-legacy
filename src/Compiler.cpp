@@ -90,12 +90,20 @@ void Compiler::visit(DataDecl *param)
 	std::cout << "DataDecl start" << std::endl;
 }
 
-void Compiler::visit(RopScript *param)
+void Compiler::visit_enter(RopScript *param)
 {
 	// create new data section and code section
 	//m_data.reset(new DataSection());
 	//m_code.reset(new CodeSection());
 	std::cout << "RopScript start" << std::endl;
+}
+
+void Compiler::visit_exit(RopScript *param)
+{
+	// create new data section and code section
+	//m_data.reset(new DataSection());
+	//m_code.reset(new CodeSection());
+	std::cout << "RopScript exit" << std::endl;
 }
 
 void Compiler::compile(VisitablePtr ast, TargetPtr target)

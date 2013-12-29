@@ -75,9 +75,12 @@ void DataDecl::traverse(ASTVisitor *visitor)
 void RopScript::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
-    visitor->visit(this);
+    visitor->visit_enter(this);
     
     // pass on traversal of data & code elements
     traverse_tree(data(), visitor);
     traverse_tree(code(), visitor);
+	
+	// notify visitor
+	visitor->visit_exit(this);
 }

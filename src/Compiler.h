@@ -29,7 +29,8 @@ class Compiler : public ASTVisitor
         void visit(FunctionDataDecl *param);
         void visit(SymbolDataDecl *param);
         void visit(DataDecl *param);
-        void visit(RopScript *param);
+        void visit_enter(RopScript *param);
+        void visit_exit(RopScript *param);
 
 	private:
 		VisitablePtr m_ast;

@@ -38,7 +38,8 @@ class ASTVisitor
         virtual void visit(FunctionDataDecl *param) = 0;
         virtual void visit(SymbolDataDecl *param) = 0;
         virtual void visit(DataDecl *param) = 0;
-        virtual void visit(RopScript *param) = 0;
+        virtual void visit_enter(RopScript *param) = 0;
+        virtual void visit_exit(RopScript *param) = 0;
 };
 
 class ASTVisitable
