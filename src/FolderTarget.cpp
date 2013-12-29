@@ -1,6 +1,7 @@
 // roptool
 #include "FolderTarget.h"
 #include "XmlGadget.h"
+#include "XmlGadgetMap.h"
 #include "XmlTargetManifest.h"
 
 namespace fs = boost::filesystem;
@@ -48,6 +49,33 @@ void FolderTarget::readGadgets(void)
 	});
 }
 
+void FolderTarget::readGadgetMaps(void)
+{
+	// empty gadget list
+	m_gadgetmaps.clear();
+	
+	// read directory
+	DirectoryList list = read_directory(m_path + "/gadgetmaps");
+	
+	// loop through the directory list
+	std::for_each(list.begin(), list.end(), [=](const fs::path& p)
+	{
+		XmlGadgetMapPtr gadgetmap(new XmlGadgetMap);
+		
+		if (fs::is_regular_file(p))
+		{
+			// parse gadgetmap
+			gadgetmap->addGadgets(m_gadgets);
+			gadgetmap->parse(p.string());
+			gadgetmap->stack();
+			std::cout << "gadgetmap\n";
+		}
+		
+		// add to list
+		m_gadgetmaps.push_back(gadgetmap);
+	});
+}
+
 void FolderTarget::setName(const std::string& name)
 {
 	// set name
@@ -57,4 +85,5 @@ void FolderTarget::setName(const std::string& name)
 	// read manifest
 	readManifest();
 	readGadgets();
+	readGadgetMaps();
 }

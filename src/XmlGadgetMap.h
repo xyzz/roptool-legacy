@@ -8,6 +8,7 @@
 // std
 #include <memory>
 #include <string>
+#include <vector>
 
 // forward declare class
 namespace tinyxml2
@@ -26,7 +27,7 @@ class XmlGadgetMap : public GadgetMap
 		boost::regex regex(void);
 		void addGadgets(GadgetPtrList gadgets);
 		
-		void stack(void);
+		std::vector<int> stack(void);
 		
 	private:
 		std::unique_ptr<XmlActionVisitor> m_visitor;

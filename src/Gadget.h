@@ -12,6 +12,7 @@ class Gadget
 		virtual bool parse(const std::string& file) = 0;
 		
 		virtual const std::string& name(void) = 0;
+		virtual int address(void) = 0;
 };
 
 typedef std::shared_ptr<Gadget> GadgetPtr;

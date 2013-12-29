@@ -41,12 +41,12 @@ void XmlGadgetMap::set_regex(const std::string& regex_str)
 	m_regex = regex_str;
 }
 
-void XmlGadgetMap::stack(void)
+std::vector<int> XmlGadgetMap::stack(void)
 {
-	// create regex expr
-	//boost::regex arg = 
 	boost::regex gadget_ref("GADGET_ADDRESS\\(([A-Z0-9a-z._%+-]+)\\)");
+	boost::regex number("\\s*[+-]?([1-9][0-9]*|0[0-7]*|0[xX][0-9a-fA-F]+)");
 	boost::cmatch match;
+	std::vector<int> data;
 	
 	// loop through the stack
 	for (auto it = m_stack.begin(); it != m_stack.end(); it++)
@@ -57,6 +57,7 @@ void XmlGadgetMap::stack(void)
 		if (m_definitions.find(*it) != m_definitions.end())
 		{
 			value = m_definitions[*it];
+			std::cout << "value: " << value << "\n";
 		}
 		
 		// check if its a gadget reference
@@ -79,21 +80,33 @@ void XmlGadgetMap::stack(void)
 				// \TODO: we need to do better responses
 				throw std::runtime_error("Error, no reference to gadget: " + match[1].str());
 			}
+			
+			// get the address
+			value = (*gadget_it)->address();
+			std::cout << "gadget: " << value << "\n";
 		}
 		
 		// check if its a numeric value
-		//else if ()
-		//{
-		
-		//}
+		else if (boost::regex_match((*it).c_str(), match, number))
+		{
+			// is number
+			std::cout << "is number - " << (*it) << "\n";
+			value = (int)strtoull((*it).c_str(), NULL, 0);
+		}
 		
 		// default
 		else
 		{
-		
+			std::cout << "unknown - " << (*it) << "\n";
+			throw std::runtime_error("Error, gadget map has undefined name: " + (*it));
 		}
+		
+		// add to data structure
+		data.push_back(value);
 	}
 	
+	// return stack
+	return data;
 }
 
 void XmlGadgetMap::add_stack_data(const std::string& stack_str)
@@ -102,6 +115,15 @@ void XmlGadgetMap::add_stack_data(const std::string& stack_str)
 	//	either a VALUE
 	//	keyword (FUNC_ADDR, ARG*)
 	//	gadget reference GADGET( GADGNET NAME )
+	boost::regex arg_regex("ARG[0-9]+");
+	boost::cmatch match;
+	
+	// check if its an argument
+	if (boost::regex_match(stack_str.c_str(), match, arg_regex))
+	{
+		// add to our definitions map with default of zero
+		m_definitions.insert(std::pair<std::string, int>(stack_str, 0));
+	}
 	
 	// eventually all will be integer value
 	m_stack.push_back(stack_str);

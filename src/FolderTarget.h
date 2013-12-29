@@ -4,6 +4,7 @@
 // roptool
 #include "Target.h"
 #include "Gadget.h"
+#include "GadgetMap.h"
 
 // std
 #include <string>
@@ -29,10 +30,12 @@ class FolderTarget : public Target
 		std::string m_name;
 		std::string m_path;
 		GadgetPtrList m_gadgets;
+		GadgetMapPtrList m_gadgetmaps;
 		TargetManifestPtr m_manifest;
 		
 		void readManifest(void);
 		void readGadgets(void);
+		void readGadgetMaps(void);
 		
 		typedef std::vector<boost::filesystem::path> DirectoryList;
 		DirectoryList read_directory(const boost::filesystem::path& dir);

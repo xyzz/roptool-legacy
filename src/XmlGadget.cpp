@@ -25,7 +25,7 @@ bool XmlGadget::parse(const std::string& file)
 	}
 	
 	// set name
-	m_name = boost::filesystem::path(file).filename().string();
+	m_name = boost::filesystem::path(file).filename().replace_extension().string();
 	
 	// use visitor through XML
 	m_xmldoc->Accept(m_visitor.get());
