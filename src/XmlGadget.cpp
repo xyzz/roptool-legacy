@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <stdexcept>
 
+// boost
+#include <boost/filesystem.hpp>
+
 // tinyxml2
 #include <tinyxml2.h>
 
@@ -20,6 +23,9 @@ bool XmlGadget::parse(const std::string& file)
 		// error reading file
 		throw std::runtime_error(std::string("Could not open manifest file: ") + file);
 	}
+	
+	// set name
+	m_name = boost::filesystem::path(file).filename().string();
 	
 	// use visitor through XML
 	m_xmldoc->Accept(m_visitor.get());
@@ -37,6 +43,12 @@ void XmlGadget::set_address(const std::string& address)
 	m_address = std::strtoul(address.c_str(), NULL, 0);
 }
 
+
+const std::string& XmlGadget::name(void)
+{
+	return m_name;
+}
+
 XmlGadget::XmlGadget(void)
 {
 	using namespace std::placeholders;
@@ -45,7 +57,7 @@ XmlGadget::XmlGadget(void)
 	m_visitor.reset(new XmlActionVisitor());
 	
 	// add handlers
-	m_visitor->addHandler("address", std::bind(&XmlGadget::set_address, this, _1), true);
+	m_visitor->addHandler("gadget-address", std::bind(&XmlGadget::set_address, this, _1), true);
 }
 
 XmlGadget::~XmlGadget(void)

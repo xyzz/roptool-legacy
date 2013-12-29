@@ -26,10 +26,13 @@ class XmlGadget : public Gadget
 		int address(void);
 		void set_address(const std::string& str_address);
 		
+		const std::string& name(void);
+		
 	private:
 		std::unique_ptr<XmlActionVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
 		
+		std::string m_name;
 		int m_address;
 };
 
