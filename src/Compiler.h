@@ -43,6 +43,11 @@ class Compiler : public ASTVisitor
 		std::shared_ptr<SymbolVisitor> m_symbol_visitor;
 		std::map<std::string, unsigned int> m_functions, m_symbols;
 		
+		// this stores the function call param types
+		std::vector<char> m_param_type;
+		
+		// this stores the function call data references
+		std::vector<unsigned int> m_param;
 };
 
 #endif // _COMPILER_H_

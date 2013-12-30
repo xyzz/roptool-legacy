@@ -32,76 +32,65 @@ class SymbolVisitor : public boost::static_visitor<unsigned int>
 
 void Compiler::visit(SymbolParameter *param)
 {
-	std::cout << "param: got symbol - " << param->value() << "\n";
+	auto it = m_symbols.find(param->value());
+	
+	// check if symbol exists
+	if (it == m_symbols.end())
+	{
+		// cannot find symbol!
+		throw std::runtime_error("Undefined symbol: " + param->value());
+	}
+	
+	m_param_type.push_back('v');
+	m_param.push_back(it->second);
 }
 
 void Compiler::visit(StringParameter *param)
 {
-	std::cout << "param: got string - " << param->value() << "\n";
+	// add string to data section
+	m_param_type.push_back('v');
+	m_param.push_back(0);
 }
 
 void Compiler::visit(ConstantParameter *param)
 {
-	std::cout << "param: got constant - " << param->value() << "\n";
+	// just push onto list
+	m_param_type.push_back('v');
+	m_param.push_back(param->value());
 }
 
 void Compiler::visit(ReturnParameter *param)
-{		
-	std::cout << "param: RETURN ADDRESS\n";
+{
+	m_param_type.push_back('r');
+	m_param.push_back(0);
 }
+
 void Compiler::visit(InlineLoadParameter *param)
 {
-	std::cout << "param: got inline load at - " << param->value() << "\n";
-	
-	// check if parameter needs storage
-	// these values are typical of strings
-/*	unsigned int value = 0;
-	char code = 'v';
-	
-	// check the parameter type
-	switch (param->type())
-	{
-		case CONSTANT:
-			code = 'v';
-			value = 0;
-			break;
-			
-		case STRING:
-			code = 'v';
-			// allocate memory for string
-			value = 1;
-			break;
-		
-		case SYMBOL:
-			code = 'v';
-			// lookup symbol
-			value = 2;
-			break;
-			
-		case RETURN:
-			code = 'r';
-			value = 3;
-			break;
-			
-		case LOAD:
-			code = 'l';
-			value = 4;
-			break;
-	}
-	*/
-	//m_params.push_back(std::vector<char, unsigned int>(code, value));
-	//std::cout << "param:" << param->parameter() << std::endl;
+	// special type of 'l'
+	m_param_type.push_back('l');
+	m_param.push_back(param->value());
 }
 
 void Compiler::visit_enter(CallDecl *param)
 {
-	//m_params.clear();
+	m_param_type.clear();
+	m_param.clear();
 	//std::cout << "call:" << param->name() << std::endl;
 }
 
 void Compiler::visit_exit(CallDecl *param)
 {
 	//std::cout << "call:" << param->name() << std::endl;
+	
+	std::cout << "CALL: " << param->name() << "(";
+	
+	std::for_each(m_param_type.begin(), m_param_type.end(), [=](char p)
+	{
+		std::cout << p;
+	});
+	
+	std::cout << ")\n";
 }
 
 void Compiler::visit_enter(CodeDecl *param)
