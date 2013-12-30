@@ -76,21 +76,16 @@ void Compiler::visit_enter(CallDecl *param)
 {
 	m_param_type.clear();
 	m_param.clear();
-	//std::cout << "call:" << param->name() << std::endl;
 }
 
 void Compiler::visit_exit(CallDecl *param)
 {
-	//std::cout << "call:" << param->name() << std::endl;
+	// add a null terminator and construct string
+	m_param_type.push_back('\0');
+	std::string param_type_list(m_param_type.data());
+	std::string call_prototype = std::string("(") + param_type_list + ")";
 	
-	std::cout << "CALL: " << param->name() << "(";
 	
-	std::for_each(m_param_type.begin(), m_param_type.end(), [=](char p)
-	{
-		std::cout << p;
-	});
-	
-	std::cout << ")\n";
 }
 
 void Compiler::visit_enter(CodeDecl *param)
