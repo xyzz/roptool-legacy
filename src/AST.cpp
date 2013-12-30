@@ -11,12 +11,36 @@ namespace
         // pass on traversal of data element
         std::for_each(ast_tree.begin(), ast_tree.end(), [=](T& p)
         {
-            p.traverse(visitor);
+            p->traverse(visitor);
         });
     }
 };
 
-void CallParameter::traverse(ASTVisitor *visitor)
+void SymbolParameter::traverse(ASTVisitor *visitor)
+{
+    // notify the visitor
+    visitor->visit(this);
+}
+
+void StringParameter::traverse(ASTVisitor *visitor)
+{
+    // notify the visitor
+    visitor->visit(this);
+}
+
+void ConstantParameter::traverse(ASTVisitor *visitor)
+{
+    // notify the visitor
+    visitor->visit(this);
+}
+
+void ReturnParameter::traverse(ASTVisitor *visitor)
+{
+    // notify the visitor
+    visitor->visit(this);
+}
+
+void InlineLoadParameter::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
     visitor->visit(this);

@@ -28,6 +28,58 @@ namespace phx = boost::phoenix;
 
 typedef struct
 {
+	std::string param;
+} SymbolParam;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	SymbolParam,
+	(std::string, param)
+)
+
+typedef struct
+{
+	std::string param;
+} StringParam;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	StringParam,
+	(std::string, param)
+);
+
+typedef struct
+{
+	unsigned int param;
+} ConstantParam;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	ConstantParam,
+	(unsigned int, param)
+)
+
+typedef struct
+{
+	std::string nil;
+} ReturnParam;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	ReturnParam,
+	(std::string, nil)
+)
+
+typedef struct
+{
+	unsigned int address;
+} InlineLoadParam;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	InlineLoadParam,
+	(unsigned int, address)
+)
+
+typedef boost::variant<SymbolParam, StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
+
+typedef struct
+{
 	std::string name;
 	Function value;
 } FunctionData;
@@ -107,31 +159,72 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(DataDeclImpl_, data)
 	(CodeDataList, code)
 );
-	
+
+typedef boost::variant<SymbolParam, StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
+
 namespace
 {
+	class CreateParamaterVisitor : public boost::static_visitor<CallParameter *>
+	{
+		public:	
+			CreateParamaterVisitor(void) { }
+			
+			CallParameter *operator()(SymbolParam symbol) const
+			{
+				SymbolParameter *param = new SymbolParameter();
+				param->set(symbol.param);
+				return param;
+			}
+			
+			CallParameter *operator()(StringParam str) const
+			{
+				StringParameter *param = new StringParameter();
+				param->set(str.param);
+				return param;
+			}
+			
+			CallParameter *operator()(ConstantParam constant) const
+			{
+				ConstantParameter *param = new ConstantParameter();
+				param->set(constant.param);
+				return param;
+			}
+			
+			CallParameter *operator()(ReturnParam constant) const
+			{
+				return new ReturnParameter();
+			}
+			
+			CallParameter *operator()(InlineLoadParam inline_load) const
+			{
+				InlineLoadParameter *param = new InlineLoadParameter();
+				param->set(inline_load.address);
+				return param;
+			}
+	};
+
 	RopScriptShared convertToAST(const RopScriptImpl& impl)
 	{
 		// create ast smart pointer
 		RopScriptShared ast(new RopScript());
-		DataDecl data;
+		DataDeclPtr data(new DataDecl);
 		
 		// loop through data section
 		std::for_each(impl.data.functions.begin(), impl.data.functions.end(), [=, &data](const FunctionData& p)
 		{
-			FunctionDataDecl func_data;
-			func_data.setName(p.name);
-			func_data.setData(p.value);
-			data.addFunction(func_data);
+			FunctionDataDeclPtr func_data(new FunctionDataDecl);
+			func_data->setName(p.name);
+			func_data->setData(p.value);
+			data->addFunction(func_data);
 		});
 		
 		// loop through symbols
 		std::for_each(impl.data.symbols.begin(), impl.data.symbols.end(), [=, &data](const SymbolData& p)
 		{
-			SymbolDataDecl symbol_data;
-			symbol_data.setName(p.name);
-			symbol_data.setData(p.value);
-			data.addSymbol(symbol_data);
+			SymbolDataDeclPtr symbol_data(new SymbolDataDecl);
+			symbol_data->setName(p.name);
+			symbol_data->setData(p.value);
+			data->addSymbol(symbol_data);
 		});
 		
 		// add the data section
@@ -140,22 +233,22 @@ namespace
 		// loop through code section
 		std::for_each(impl.code.begin(), impl.code.end(), [=](const CodeData& p)
 		{
-			CodeDecl code_data;
-			code_data.setName(p.name);
+			CodeDeclPtr code_data(new CodeDecl);
+			code_data->setName(p.name);
 			
 			std::for_each(p.calls.begin(), p.calls.end(), [=, &code_data](const CallData& p)
 			{
-				CallDecl call_data;
-				call_data.setName(p.name);
+				CallDeclPtr call_data(new CallDecl);
+				call_data->setName(p.name);
 				
 				std::for_each(p.parameters.begin(), p.parameters.end(), [=, &call_data](const Parameter& p)
 				{
-					CallParameter call_param;
-					call_param.setParameter(p);
-					call_data.addParameter(call_param);
+					CallParameter *call_param = boost::apply_visitor(CreateParamaterVisitor(), p);
+					CallParameterPtr param(call_param);
+					call_data->addParameter(param);
 				});
 				
-				code_data.addCall(call_data);
+				code_data->addCall(call_data);
 			});
 			
 			ast->addCode(code_data);
@@ -194,8 +287,12 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
 		call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-        param = inline_load | quoted_string | expression | identifier;
-        inline_load = qi::lexeme[qi::lit("LOAD") > qi::char_('[') > +(qi::char_ - ']') > qi::char_(']')];
+        param = inline_load | string_param | expression_param | return_param | symbol_param;
+		string_param = quoted_string;
+		return_param = qi::char_('R') > qi::char_('E') > qi::char_('T');
+		symbol_param = identifier;
+		expression_param = expression;
+        inline_load = qi::lexeme[qi::lit("LOAD") > qi::lit('[') > number > qi::lit(']')];
 		
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
@@ -253,12 +350,16 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
     qi::rule<Iterator, SymbolData(), skip_grammar<Iterator>> symbol_decl;
     qi::rule<Iterator, DataDeclImpl_(), skip_grammar<Iterator>> data_section;
     
+    qi::rule<Iterator, StringParam(), skip_grammar<Iterator>> string_param;
+    qi::rule<Iterator, SymbolParam(), skip_grammar<Iterator>> symbol_param;
+    qi::rule<Iterator, ConstantParam(), skip_grammar<Iterator>> expression_param;
+    qi::rule<Iterator, ReturnParam(), skip_grammar<Iterator>> return_param;
+    qi::rule<Iterator, InlineLoadParam(), skip_grammar<Iterator>> inline_load;
     qi::rule<Iterator, Parameter(), skip_grammar<Iterator>> param;
     qi::rule<Iterator, ParameterList(), skip_grammar<Iterator>> parameter_list;
     qi::rule<Iterator, CallData(), skip_grammar<Iterator>> call_decl;
     qi::rule<Iterator, CodeData(), skip_grammar<Iterator>> code_section;
     qi::rule<Iterator, RopScriptImpl(), skip_grammar<Iterator>> ropscript;
-    qi::rule<Iterator, std::string(), skip_grammar<Iterator>> inline_load;
     
     
     qi::rule<Iterator, int(), skip_grammar<Iterator>> primary_expr;

@@ -11,6 +11,11 @@
 #include <boost/variant.hpp>
 
 // forward declaration of the classes in the AST
+class SymbolParameter;
+class StringParameter;
+class ConstantParameter;
+class ReturnParameter;
+class InlineLoadParameter;
 class CallParameter;
 class CallDecl;
 class CodeDecl;
@@ -30,7 +35,11 @@ typedef DataDeclImpl<Symbol> SymbolDataDecl;
 class ASTVisitor
 {
     public:
-        virtual void visit(CallParameter *param) = 0;
+        virtual void visit(SymbolParameter *param) = 0;
+        virtual void visit(StringParameter *param) = 0;
+        virtual void visit(ConstantParameter *param) = 0;
+        virtual void visit(ReturnParameter *param) = 0;
+        virtual void visit(InlineLoadParameter *param) = 0;
         virtual void visit_enter(CallDecl *param) = 0;
         virtual void visit_exit(CallDecl *param) = 0;
         virtual void visit_enter(CodeDecl *param) = 0;
@@ -48,22 +57,98 @@ class ASTVisitable
         virtual void traverse(ASTVisitor *visitor) = 0;
 };
 
-typedef boost::variant<unsigned int, std::string> Parameter;
-
 class CallParameter : public ASTVisitable
 {
-    public:
-        Parameter& parameter(void) { return m_param; }
-        const Parameter& parameter(void) const { return m_param; }
-        void setParameter(const Parameter& param) { m_param = param; }
-        
-        void traverse(ASTVisitor *visitor);
-    
-    private:
-        Parameter m_param;
+    public:		
+        void traverse(ASTVisitor *visitor) = 0;
+		
+		enum Type
+		{
+			CONSTANT = 0,
+			SYMBOL,
+			STRING,
+			RETURN,
+			INLINE_LOAD,
+		};
+		
+		virtual Type type(void) const = 0;
 };
 
-typedef std::vector<CallParameter> CallParameterList;
+typedef std::shared_ptr<CallParameter> CallParameterPtr;
+typedef std::vector<CallParameterPtr> CallParameterPtrList;
+
+class SymbolParameter : public CallParameter
+{
+	public:
+		SymbolParameter(void) { }
+		void traverse(ASTVisitor *visitor);
+		
+		void set(const std::string& symbol) { m_symbol = symbol; }
+		const std::string& value(void) const { return m_symbol; }
+		
+		CallParameter::Type type(void) const { return CallParameter::SYMBOL; }
+	
+	private:
+		std::string m_symbol;
+		
+};
+
+class StringParameter : public CallParameter
+{
+	public:
+		StringParameter(void) { }
+		void traverse(ASTVisitor *visitor);
+		
+		void set(const std::string& str) { m_str = str; }
+		const std::string& value(void) const { return m_str; }
+		
+		CallParameter::Type type(void) const { return CallParameter::STRING; }
+	
+	private:
+		std::string m_str;
+		
+};
+
+class ConstantParameter : public CallParameter
+{
+	public:
+		ConstantParameter(void) { }
+		void traverse(ASTVisitor *visitor);
+		
+		void set(unsigned int val) { m_val = val; }
+		unsigned int value(void) const { return m_val; }
+		
+		CallParameter::Type type(void) const { return CallParameter::CONSTANT; }
+	
+	private:
+		unsigned int m_val;
+		
+};
+
+class ReturnParameter : public CallParameter
+{
+	public:
+		ReturnParameter(void) { }
+		void traverse(ASTVisitor *visitor);
+		
+		unsigned int value(void) const { return 0; }
+		CallParameter::Type type(void) const { return CallParameter::RETURN; }
+};
+
+class InlineLoadParameter : public CallParameter
+{
+	public:
+		InlineLoadParameter(void) { }
+		void traverse(ASTVisitor *visitor);
+		
+		void set(unsigned int address) { m_address = address; }
+		unsigned int value(void) const { return m_address; }
+		
+		CallParameter::Type type(void) const { return CallParameter::INLINE_LOAD; }
+	
+	private:
+		unsigned int m_address;
+};
 
 class CallDecl : public ASTVisitable
 {
@@ -72,18 +157,19 @@ class CallDecl : public ASTVisitable
         const std::string& name(void) const { return m_name; }
         void setName(const std::string& name) { m_name = name; }
         
-        CallParameterList& parameters(void) { return m_params; }
-        const CallParameterList& parameters(void) const { return m_params; }
-        void addParameter(const CallParameter& param) { m_params.push_back(param); }
-        void addParameter(const CallParameterList& list) { m_params.insert(m_params.end(), list.begin(), list.end()); }
+        CallParameterPtrList& parameters(void) { return m_params; }
+        const CallParameterPtrList& parameters(void) const { return m_params; }
+        void addParameter(CallParameterPtr param) { m_params.push_back(param); }
+        void addParameter(CallParameterPtrList list) { m_params.insert(m_params.end(), list.begin(), list.end()); }
         void traverse(ASTVisitor *visitor);
     
     private:
-        CallParameterList m_params;
+        CallParameterPtrList m_params;
         std::string m_name;
 };
 
-typedef std::vector<CallDecl> CallDeclList;
+typedef std::shared_ptr<CallDecl> CallDeclPtr;
+typedef std::vector<CallDeclPtr> CallDeclPtrList;
 
 class CodeDecl : public ASTVisitable
 {
@@ -91,14 +177,14 @@ class CodeDecl : public ASTVisitable
         const std::string& name(void) const { return m_name; }
         void setName(const std::string& name) { m_name = name; }
         
-        const CallDeclList& calls(void) const { return m_calls; }
-        void addCall(const CallDecl& call) { m_calls.push_back(call); }
+        const CallDeclPtrList& calls(void) const { return m_calls; }
+        void addCall(CallDeclPtr call) { m_calls.push_back(call); }
         
         void traverse(ASTVisitor *visitor);
         
     private:
         std::string m_name;
-        CallDeclList m_calls;
+        CallDeclPtrList m_calls;
 };
 
 template<typename T>
@@ -118,42 +204,48 @@ class DataDeclImpl : public ASTVisitable
         T m_data;
 };
 
-typedef std::vector<FunctionDataDecl> FunctionDataDeclList;
-typedef std::vector<SymbolDataDecl> SymbolDataDeclList;
+typedef std::shared_ptr<FunctionDataDecl> FunctionDataDeclPtr;
+typedef std::vector<FunctionDataDeclPtr> FunctionDataDeclPtrList;
+
+typedef std::shared_ptr<SymbolDataDecl> SymbolDataDeclPtr;
+typedef std::vector<SymbolDataDeclPtr> SymbolDataDeclPtrList;
 
 class DataDecl : public ASTVisitable
 {
     public:
-        const FunctionDataDeclList& functions(void) const { return m_func_data; } 
-        void addFunction(const FunctionDataDecl& func_data) { m_func_data.push_back(func_data); }
+        const FunctionDataDeclPtrList& functions(void) const { return m_func_data; } 
+        void addFunction(FunctionDataDeclPtr func_data) { m_func_data.push_back(func_data); }
         
-        const SymbolDataDeclList& symbols(void) const { return m_sym_data; }
-        void addSymbol(const SymbolDataDecl& symbol_data) { m_sym_data.push_back(symbol_data); }
+        const SymbolDataDeclPtrList& symbols(void) const { return m_sym_data; }
+        void addSymbol(SymbolDataDeclPtr symbol_data) { m_sym_data.push_back(symbol_data); }
         
         void traverse(ASTVisitor *visitor);
         
     private:
-        SymbolDataDeclList m_sym_data;
-        FunctionDataDeclList m_func_data;
+        SymbolDataDeclPtrList m_sym_data;
+        FunctionDataDeclPtrList m_func_data;
 };
 
-typedef std::vector<DataDecl> DataDeclList;
-typedef std::vector<CodeDecl> CodeDeclList;
+typedef std::shared_ptr<DataDecl> DataDeclPtr;
+typedef std::vector<DataDeclPtr> DataDeclPtrList;
+
+typedef std::shared_ptr<CodeDecl> CodeDeclPtr;
+typedef std::vector<CodeDeclPtr> CodeDeclPtrList;
 
 class RopScript : public ASTVisitable
 {
     public:
-        const DataDeclList& data(void) const { return m_data; }
-        void addData(const DataDecl& data) { m_data.push_back(data); }
+        const DataDeclPtrList& data(void) const { return m_data; }
+        void addData(DataDeclPtr data) { m_data.push_back(data); }
         
-        const CodeDeclList& code(void) const { return m_code; }
-        void addCode(const CodeDecl& code) { m_code.push_back(code); }
+        const CodeDeclPtrList& code(void) const { return m_code; }
+        void addCode(CodeDeclPtr code) { m_code.push_back(code); }
         
         void traverse(ASTVisitor *visitor);
         
     private:
-        DataDeclList m_data;
-        CodeDeclList m_code;
+        DataDeclPtrList m_data;
+        CodeDeclPtrList m_code;
 };
 
 typedef std::shared_ptr<RopScript> RopScriptShared;

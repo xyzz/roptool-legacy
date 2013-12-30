@@ -21,7 +21,11 @@ class Compiler : public ASTVisitor
 		void compile(VisitablePtr m_ast, TargetPtr m_target);
 		
 		// visitor methods
-		void visit(CallParameter *param);
+        void visit(SymbolParameter *param);
+        void visit(StringParameter *param);
+        void visit(ConstantParameter *param);
+        void visit(ReturnParameter *param);
+        void visit(InlineLoadParameter *param);
         void visit_enter(CallDecl *param);
         void visit_exit(CallDecl *param);
         void visit_enter(CodeDecl *param);
