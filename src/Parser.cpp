@@ -291,16 +291,29 @@ struct skip_grammar : qi::grammar<Iterator>
 template <typename Iterator>
 struct error_handler 
 {
-    typedef qi::error_handler_result result_type;
+	typedef qi::error_handler_result result_type;
 	template<typename T3>
-	qi::error_handler_result operator()(Iterator first, Iterator last, Iterator where, T3 const& what) const
+	qi::error_handler_result operator()(Iterator begin, Iterator last, Iterator where, T3 const& what) const
 	{
-		std::cout << "error LOL: " << what << "\n";
-		std::cout << "error LOL: " << get_line(where, last) << "\n";
+		std::stringstream msg;
+		const classic::file_position_base<std::string>& pos = where.get_position();
+
+		// construct error message for the exception
+		msg << pos.file << "(" << pos.line << "): '";
+
+		std::cout << msg.str() << get_line(where, begin, last) << "' " << what << "\n";
+		std::cout << std::setw(msg.str().length() + std::distance(skip_whitespace(begin), skip_whitespace(where))) << '^' << "---- here\n";
 		return qi::fail;
 	}
 	
-	std::string get_line(Iterator error_pos, Iterator last) const
+	Iterator skip_whitespace(Iterator begin) const
+	{
+		Iterator j = begin;
+		while (*j == ' ' || *j == '\t' || *j == '\r' || *j == '\n') j++;
+		return j;
+	}
+	
+	std::string get_line(Iterator error_pos, Iterator begin, Iterator last) const
 	{
 		Iterator i = error_pos;
 		
@@ -309,7 +322,7 @@ struct error_handler
 			i++;
 		}
 		
-		return std::string(error_pos, i);
+		return std::string(skip_whitespace(begin), i);
 	}
 };
 
@@ -387,7 +400,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         decimal_digit = qi::char_("0-9");
         
 		// our error handlers
-		qi::on_error<qi::fail>(symbol_decl, handler(qi::_1, qi::_2, qi::_3, qi::_4));
+		qi::on_error<qi::fail>(symbol_decl, handler(qi::_1, qi::_2, qi::_3, "Symbol redefined"));
 		
         // name the rules
         /*ropscript.name("ropscript");
