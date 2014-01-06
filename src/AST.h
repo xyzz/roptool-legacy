@@ -11,7 +11,6 @@
 #include <boost/variant.hpp>
 
 // forward declaration of the classes in the AST
-class SymbolParameter;
 class StringParameter;
 class ConstantParameter;
 class ReturnParameter;
@@ -26,16 +25,11 @@ template<typename T>
 class DataDeclImpl;
 
 typedef unsigned int Function;
-typedef boost::variant<unsigned int, std::string> Symbol;
-
-
 typedef DataDeclImpl<Function> FunctionDataDecl;
-typedef DataDeclImpl<Symbol> SymbolDataDecl;
 
 class ASTVisitor
 {
     public:
-        virtual void visit(SymbolParameter *param) = 0;
         virtual void visit(StringParameter *param) = 0;
         virtual void visit(ConstantParameter *param) = 0;
         virtual void visit(ReturnParameter *param) = 0;
@@ -45,7 +39,6 @@ class ASTVisitor
         virtual void visit_enter(CodeDecl *param) = 0;
         virtual void visit_exit(CodeDecl *param) = 0;
         virtual void visit(FunctionDataDecl *param) = 0;
-        virtual void visit(SymbolDataDecl *param) = 0;
         virtual void visit(DataDecl *param) = 0;
         virtual void visit_enter(RopScript *param) = 0;
         virtual void visit_exit(RopScript *param) = 0;
@@ -65,7 +58,6 @@ class CallParameter : public ASTVisitable
 		enum Type
 		{
 			CONSTANT = 0,
-			SYMBOL,
 			STRING,
 			RETURN,
 			INLINE_LOAD,
@@ -76,22 +68,6 @@ class CallParameter : public ASTVisitable
 
 typedef std::shared_ptr<CallParameter> CallParameterPtr;
 typedef std::vector<CallParameterPtr> CallParameterPtrList;
-
-class SymbolParameter : public CallParameter
-{
-	public:
-		SymbolParameter(void) { }
-		void traverse(ASTVisitor *visitor);
-		
-		void set(const std::string& symbol) { m_symbol = symbol; }
-		const std::string& value(void) const { return m_symbol; }
-		
-		CallParameter::Type type(void) const { return CallParameter::SYMBOL; }
-	
-	private:
-		std::string m_symbol;
-		
-};
 
 class StringParameter : public CallParameter
 {
@@ -207,22 +183,15 @@ class DataDeclImpl : public ASTVisitable
 typedef std::shared_ptr<FunctionDataDecl> FunctionDataDeclPtr;
 typedef std::vector<FunctionDataDeclPtr> FunctionDataDeclPtrList;
 
-typedef std::shared_ptr<SymbolDataDecl> SymbolDataDeclPtr;
-typedef std::vector<SymbolDataDeclPtr> SymbolDataDeclPtrList;
-
 class DataDecl : public ASTVisitable
 {
     public:
         const FunctionDataDeclPtrList& functions(void) const { return m_func_data; } 
         void addFunction(FunctionDataDeclPtr func_data) { m_func_data.push_back(func_data); }
         
-        const SymbolDataDeclPtrList& symbols(void) const { return m_sym_data; }
-        void addSymbol(SymbolDataDeclPtr symbol_data) { m_sym_data.push_back(symbol_data); }
-        
         void traverse(ASTVisitor *visitor);
         
     private:
-        SymbolDataDeclPtrList m_sym_data;
         FunctionDataDeclPtrList m_func_data;
 };
 

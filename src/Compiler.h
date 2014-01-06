@@ -8,9 +8,6 @@
 #include <memory>
 #include <string>
 
-// forward declare class
-class SymbolVisitor;
-
 class Compiler : public ASTVisitor
 {
 	public:
@@ -21,7 +18,6 @@ class Compiler : public ASTVisitor
 		void compile(VisitablePtr m_ast, TargetPtr m_target);
 		
 		// visitor methods
-        void visit(SymbolParameter *param);
         void visit(StringParameter *param);
         void visit(ConstantParameter *param);
         void visit(ReturnParameter *param);
@@ -31,7 +27,6 @@ class Compiler : public ASTVisitor
         void visit_enter(CodeDecl *param);
         void visit_exit(CodeDecl *param);
         void visit(FunctionDataDecl *param);
-        void visit(SymbolDataDecl *param);
         void visit(DataDecl *param);
         void visit_enter(RopScript *param);
         void visit_exit(RopScript *param);
@@ -40,8 +35,7 @@ class Compiler : public ASTVisitor
 		VisitablePtr m_ast;
 		TargetPtr m_target;
 		
-		std::shared_ptr<SymbolVisitor> m_symbol_visitor;
-		std::map<std::string, unsigned int> m_functions, m_symbols;
+		std::map<std::string, unsigned int> m_functions;
 		
 		// this stores the function call param types
 		std::vector<char> m_param_type;

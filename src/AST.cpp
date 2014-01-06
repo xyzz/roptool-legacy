@@ -16,12 +16,6 @@ namespace
     }
 };
 
-void SymbolParameter::traverse(ASTVisitor *visitor)
-{
-    // notify the visitor
-    visitor->visit(this);
-}
-
 void StringParameter::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
@@ -77,13 +71,6 @@ void FunctionDataDecl::traverse(ASTVisitor *visitor)
     visitor->visit(this);
 }
 
-template<>
-void SymbolDataDecl::traverse(ASTVisitor *visitor)
-{
-    // notify the visitor
-    visitor->visit(this);
-}
-
 void DataDecl::traverse(ASTVisitor *visitor)
 {
     // notify the visitor
@@ -91,9 +78,6 @@ void DataDecl::traverse(ASTVisitor *visitor)
     
     // pass on traversal to functions
     traverse_tree(functions(), visitor);
-    
-    // pass on traversal to symbols
-    traverse_tree(symbols(), visitor);
 }
 
 void RopScript::traverse(ASTVisitor *visitor)

@@ -1,50 +1,5 @@
 #include "Compiler.h"
 
-class SymbolVisitor : public boost::static_visitor<unsigned int>
-{
-	public:	
-		SymbolVisitor(std::map<std::string, unsigned int> *map)
-		{
-			m_map = map;
-		}
-		
-		unsigned int operator()(unsigned int i) const
-		{
-			return i;
-		}
-		
-		unsigned int operator()(const std::string& str) const
-		{
-			// look up symbol
-			auto it = m_map->find(str);
-			
-			if (it == m_map->end())
-			{
-				throw std::runtime_error("Symbol resolves to non-existant definition.\n");
-			}
-			
-			return it->second;
-		}
-	
-	private:
-		std::map<std::string, unsigned int> *m_map;
-};
-
-void Compiler::visit(SymbolParameter *param)
-{
-	auto it = m_symbols.find(param->value());
-	
-	// check if symbol exists
-	if (it == m_symbols.end())
-	{
-		// cannot find symbol!
-		throw std::runtime_error("Undefined symbol: " + param->value());
-	}
-	
-	m_param_type.push_back('v');
-	m_param.push_back(it->second);
-}
-
 void Compiler::visit(StringParameter *param)
 {
 	// add string to data section
@@ -109,27 +64,11 @@ void Compiler::visit(FunctionDataDecl *param)
 	}
 }
 
-void Compiler::visit(SymbolDataDecl *param)
-{
-	// add symbol to map
-	std::cout << "got symbol: '" << param->name() << "'. value: " << param->getData();
-	
-	auto val = boost::apply_visitor(*m_symbol_visitor, param->getData());
-	bool redefined = !m_symbols.insert(std::pair<std::string, unsigned int>(param->name(), val)).second;
-	
-	if (redefined)
-	{
-		std::cout << "symbol '" << param->name() << "' redefined!" << std::endl;
-	}
-}
-
 void Compiler::visit(DataDecl *param)
 {
 	// 
-	m_symbols.clear();
 	m_functions.clear();
 	
-	m_symbol_visitor.reset(new SymbolVisitor(&m_symbols));
 	
 	std::cout << "DataDecl start" << std::endl;
 }

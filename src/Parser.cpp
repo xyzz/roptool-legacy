@@ -32,16 +32,6 @@ namespace phx = boost::phoenix;
 typedef struct
 {
 	std::string param;
-} SymbolParam;
-
-BOOST_FUSION_ADAPT_STRUCT(
-	SymbolParam,
-	(std::string, param)
-)
-
-typedef struct
-{
-	std::string param;
 } StringParam;
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -79,7 +69,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(unsigned int, address)
 )
 
-typedef boost::variant<SymbolParam, StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
+typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
 
 typedef struct
 {
@@ -97,28 +87,12 @@ typedef std::vector<FunctionData> FunctionDataList;
 
 typedef struct
 {
-	std::string name;
-	Symbol value;
-} SymbolData;
-
-BOOST_FUSION_ADAPT_STRUCT(
-	SymbolData,
-	(std::string, name)
-	(Symbol, value)
-);
-
-typedef std::vector<SymbolData> SymbolDataList;
-
-typedef struct
-{
 	FunctionDataList functions;
-	SymbolDataList symbols;
 } DataDeclImpl_;
 
 BOOST_FUSION_ADAPT_STRUCT(
 	DataDeclImpl_,
 	(FunctionDataList, functions)
-	(SymbolDataList, symbols)
 );
 
 typedef std::vector<Parameter> ParameterList;
@@ -163,7 +137,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(CodeDataList, code)
 );
 
-typedef boost::variant<SymbolParam, StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
+typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
 
 namespace
 {
@@ -171,14 +145,6 @@ namespace
 	{
 		public:	
 			CreateParamaterVisitor(void) { }
-			
-			CallParameter *operator()(SymbolParam symbol) const
-			{
-				std::cout << "got symbol!!!\n";
-				SymbolParameter *param = new SymbolParameter();
-				param->set(symbol.param);
-				return param;
-			}
 			
 			CallParameter *operator()(StringParam str) const
 			{
@@ -220,16 +186,6 @@ namespace
 			func_data->setName(p.name);
 			func_data->setData(p.value);
 			data->addFunction(func_data);
-		});
-		
-		// loop through symbols
-		std::for_each(impl.data.symbols.begin(), impl.data.symbols.end(), [=, &data](const SymbolData& p)
-		{
-			SymbolDataDeclPtr symbol_data(new SymbolDataDecl);
-			std::cout << "adding smyobl: '" << p.name << "' value: " << p.value << "\n";
-			symbol_data->setName(p.name);
-			symbol_data->setData(p.value);
-			data->addSymbol(symbol_data);
 		});
 		
 		// add the data section
@@ -423,11 +379,10 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
     qi::rule<Iterator, int()> decimal, octal, hex, number;
     qi::rule<Iterator, std::string()> identifier, string, quoted_string;
     qi::rule<Iterator, FunctionData(), skip_grammar<Iterator>> func_decl;
-    qi::rule<Iterator, SymbolData(), skip_grammar<Iterator>> symbol_decl;
+    qi::rule<Iterator, void(), skip_grammar<Iterator>> symbol_decl;
     qi::rule<Iterator, DataDeclImpl_(), skip_grammar<Iterator>> data_section;
     
     qi::rule<Iterator, StringParam(), skip_grammar<Iterator>> string_param;
-    qi::rule<Iterator, SymbolParam(), skip_grammar<Iterator>> symbol_param;
     qi::rule<Iterator, ConstantParam(), skip_grammar<Iterator>> expression_param;
     qi::rule<Iterator, ReturnParam(), skip_grammar<Iterator>> return_param;
     qi::rule<Iterator, InlineLoadParam(), skip_grammar<Iterator>> inline_load;
