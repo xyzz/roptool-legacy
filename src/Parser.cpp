@@ -1,3 +1,5 @@
+#define BOOST_SPIRIT_USE_PHOENIX_V3
+
 #include "Parser.h"
 
 #include <vector>
@@ -8,6 +10,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
@@ -171,6 +174,7 @@ namespace
 			
 			CallParameter *operator()(SymbolParam symbol) const
 			{
+				std::cout << "got symbol!!!\n";
 				SymbolParameter *param = new SymbolParameter();
 				param->set(symbol.param);
 				return param;
@@ -222,6 +226,7 @@ namespace
 		std::for_each(impl.data.symbols.begin(), impl.data.symbols.end(), [=, &data](const SymbolData& p)
 		{
 			SymbolDataDeclPtr symbol_data(new SymbolDataDecl);
+			std::cout << "adding smyobl: '" << p.name << "' value: " << p.value << "\n";
 			symbol_data->setName(p.name);
 			symbol_data->setData(p.value);
 			data->addSymbol(symbol_data);
@@ -259,6 +264,14 @@ namespace
 	}
 };
 
+//#####################################################
+//
+// Real Parser code
+//
+//#####################################################
+
+typedef qi::symbols<char, unsigned int> SymbolTable;
+
 template <typename Iterator>
 struct skip_grammar : qi::grammar<Iterator> 
 {
@@ -276,10 +289,54 @@ struct skip_grammar : qi::grammar<Iterator>
 };
 
 template <typename Iterator>
+struct error_handler 
+{
+    typedef qi::error_handler_result result_type;
+	template<typename T3>
+	qi::error_handler_result operator()(Iterator first, Iterator last, Iterator where, T3 const& what) const
+	{
+		std::cout << "error LOL: " << what << "\n";
+		std::cout << "error LOL: " << get_line(where, last) << "\n";
+		return qi::fail;
+	}
+	
+	std::string get_line(Iterator error_pos, Iterator last) const
+	{
+		Iterator i = error_pos;
+		
+		while (i != last && (*i != '\r' && *i != '\n'))
+		{
+			i++;
+		}
+		
+		return std::string(error_pos, i);
+	}
+};
+
+template <typename Iterator>
 struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<Iterator>>
 {
-    ropscript_grammar() : ropscript_grammar::base_type(ropscript, "ropscript")
+	SymbolTable *m_symtab;
+	
+	bool add_symbol(const std::string& str, unsigned int val)
+	{
+		// check map to see if symbol already exists
+		if (m_symtab->find(str) != NULL)
+		{
+			// already exists!
+			//throw std::runtime_error("waddup");/*
+			std::cout << "error: symbol: '" << str << "' already exists!\n";
+			return false;
+		}
+		
+		m_symtab->add(str, val);
+		return true;
+	}
+	
+    ropscript_grammar(SymbolTable &symtab) : ropscript_grammar::base_type(ropscript, "ropscript")
     {
+		m_symtab = &symtab;
+		
         // top level script grammar
         ropscript = -data_section >> -code_section;
         
@@ -287,18 +344,21 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
 		call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-        param = inline_load | string_param | expression_param | return_param | symbol_param;
+		//size_param = size_qualifer > '(' > param > ')';
+        param = inline_load | string_param | expression_param | return_param;
 		string_param = quoted_string;
 		return_param = qi::char_('R') > qi::char_('E') > qi::char_('T');
-		symbol_param = identifier;
 		expression_param = expression;
+		//symbol_param = identifier;
         inline_load = qi::lexeme[qi::lit("LOAD") > qi::lit('[') > number > qi::lit(']')];
 		
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
         func_decl = qi::lit("func") > identifier > '='> number > ';';
-        symbol_decl = qi::lit("symbol") > identifier > '=' > (number | identifier)  > ';';
-
+        //symbol_decl = qi::lit("symbol") > identifier > '=' > (number | identifier)  > ';';
+		symbol_decl = qi::lit("symbol") > (identifier > '=' > expression > ';')
+			[qi::_pass = phx::bind(&ropscript_grammar::add_symbol, this, qi::_1, qi::_2)];
+		
         // mathematical expressions
         expression = multiplicative_expr[qi::_val = qi::_1] >> 
                     *(  ('+' >> multiplicative_expr[qi::_val += qi::_1]) |
@@ -308,7 +368,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
                     *(  ('*' >> primary_expr[qi::_val *= qi::_1]) |
                         ('/' >> primary_expr[qi::_val /= qi::_1]));
                         
-        primary_expr = number | ('(' > expression > ')');
+        primary_expr = symtab | number | ('(' > expression > ')');
         
         
         // define what is classed as an identifier
@@ -326,6 +386,9 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         letter = qi::char_("a-zA-Z_");
         decimal_digit = qi::char_("0-9");
         
+		// our error handlers
+		qi::on_error<qi::fail>(symbol_decl, handler(qi::_1, qi::_2, qi::_3, qi::_4));
+		
         // name the rules
         /*ropscript.name("ropscript");
         code_section.name("code_section");
@@ -366,13 +429,17 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
     qi::rule<Iterator, int(), skip_grammar<Iterator>> multiplicative_expr;
     qi::rule<Iterator, int(), skip_grammar<Iterator>> additive_expr;
     qi::rule<Iterator, int(), skip_grammar<Iterator>> expression;
+	
+	// error handler
+	phx::function<error_handler<Iterator>> handler;
 };
 
 RopScriptShared parse(const char *filename)
 {
     std::ifstream ifs;
 	RopScriptImpl out;
-    
+    SymbolTable symtab;
+	
     // open file
     ifs.open(filename, std::ios_base::in);
     
@@ -394,19 +461,20 @@ RopScriptShared parse(const char *filename)
     // wrap forward iterator with position iterator, to record the position
     typedef classic::position_iterator2<forward_iterator_type> pos_iterator_type;
     pos_iterator_type position_begin(fwd_begin, fwd_end, filename);
+	pos_iterator_type iter = position_begin;
     pos_iterator_type position_end;
   
-    ropscript_grammar<pos_iterator_type> parser;
+    ropscript_grammar<pos_iterator_type> parser(symtab);
     bool r = false;
     
-    try
-    {
+    //try
+    //{
         // parse the script file
-        r = qi::phrase_parse(position_begin, position_end, parser, skip_grammar<pos_iterator_type>(), out);
-    }
+        r = qi::phrase_parse(iter, position_end, parser, skip_grammar<pos_iterator_type>(), out);
+    //}
 
     // catch input expectation failure
-    catch (const qi::expectation_failure<pos_iterator_type>& e)
+    /*catch (const qi::expectation_failure<pos_iterator_type>& e)
     {
         std::stringstream msg;
         std::string got = std::string(e.first, e.last);
@@ -419,7 +487,7 @@ RopScriptShared parse(const char *filename)
         msg << pos.file << "(" << pos.line << "): " << "expected: " << e.what_ << " got:" << got;
         // throw exception
         throw std::runtime_error(msg.str());
-    }
+    }*/
     
     if (r == false)
     {

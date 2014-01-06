@@ -57,6 +57,7 @@ void Compiler::visit(ConstantParameter *param)
 	// just push onto list
 	m_param_type.push_back('v');
 	m_param.push_back(param->value());
+	std::cout << "got constant value: " << param->value() << "\n";
 }
 
 void Compiler::visit(ReturnParameter *param)
@@ -111,6 +112,8 @@ void Compiler::visit(FunctionDataDecl *param)
 void Compiler::visit(SymbolDataDecl *param)
 {
 	// add symbol to map
+	std::cout << "got symbol: '" << param->name() << "'. value: " << param->getData();
+	
 	auto val = boost::apply_visitor(*m_symbol_visitor, param->getData());
 	bool redefined = !m_symbols.insert(std::pair<std::string, unsigned int>(param->name(), val)).second;
 	
