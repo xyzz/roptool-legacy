@@ -69,7 +69,19 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(unsigned int, address)
 )
 
-typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
+typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> ParameterType;
+
+typedef struct
+{
+	unsigned int size;
+	ParameterType param;
+} Parameter;
+
+BOOST_FUSION_ADAPT_STRUCT(
+	Parameter,
+	(unsigned int, size)
+	(ParameterType, param)
+)
 
 typedef struct
 {
@@ -137,8 +149,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(CodeDataList, code)
 );
 
-typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> Parameter;
-
 namespace
 {
 	class CreateParamaterVisitor : public boost::static_visitor<CallParameter *>
@@ -204,9 +214,10 @@ namespace
 				
 				std::for_each(p.parameters.begin(), p.parameters.end(), [=, &call_data](const Parameter& p)
 				{
-					CallParameter *call_param = boost::apply_visitor(CreateParamaterVisitor(), p);
+					CallParameter *call_param = boost::apply_visitor(CreateParamaterVisitor(), p.param);
 					CallParameterPtr param(call_param);
 					call_data->addParameter(param);
+					std::cout << "got param of size: " << p.size << "\n";
 				});
 				
 				code_data->addCall(call_data);
@@ -304,6 +315,15 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 	
     ropscript_grammar(SymbolTable &symtab) : ropscript_grammar::base_type(ropscript, "ropscript")
     {
+		// populate size symbols
+		size_symbols.add
+			("BYTE", 8)
+			("WORD", 16)
+			("DWORD", 32)
+			("QWORD", 64)
+		;
+		
+		// get a pointer to the symbol table
 		m_symtab = &symtab;
 		
         // top level script grammar
@@ -313,8 +333,8 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
 		call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-		//size_param = size_qualifer > '(' > param > ')';
-        param = inline_load | string_param | expression_param | return_param;
+		param = (size_symbols > '(' > type_param > ')') | (qi::attr(32) > type_param);
+        type_param = inline_load | string_param | expression_param | return_param;
 		string_param = quoted_string;
 		return_param = qi::char_('R') > qi::char_('E') > qi::char_('T');
 		expression_param = expression;
@@ -386,6 +406,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
     qi::rule<Iterator, ConstantParam(), skip_grammar<Iterator>> expression_param;
     qi::rule<Iterator, ReturnParam(), skip_grammar<Iterator>> return_param;
     qi::rule<Iterator, InlineLoadParam(), skip_grammar<Iterator>> inline_load;
+    qi::rule<Iterator, ParameterType(), skip_grammar<Iterator>> type_param;
     qi::rule<Iterator, Parameter(), skip_grammar<Iterator>> param;
     qi::rule<Iterator, ParameterList(), skip_grammar<Iterator>> parameter_list;
     qi::rule<Iterator, CallData(), skip_grammar<Iterator>> call_decl;
@@ -400,6 +421,9 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 	
 	// error handler
 	phx::function<error_handler<Iterator>> handler;
+	
+	// symbol table
+	qi::symbols<char, int> size_symbols;
 };
 
 RopScriptShared parse(const char *filename)
@@ -435,14 +459,14 @@ RopScriptShared parse(const char *filename)
     ropscript_grammar<pos_iterator_type> parser(symtab);
     bool r = false;
     
-    //try
-    //{
+    try
+    {
         // parse the script file
         r = qi::phrase_parse(iter, position_end, parser, skip_grammar<pos_iterator_type>(), out);
-    //}
+    }
 
     // catch input expectation failure
-    /*catch (const qi::expectation_failure<pos_iterator_type>& e)
+    catch (const qi::expectation_failure<pos_iterator_type>& e)
     {
         std::stringstream msg;
         std::string got = std::string(e.first, e.last);
@@ -455,7 +479,7 @@ RopScriptShared parse(const char *filename)
         msg << pos.file << "(" << pos.line << "): " << "expected: " << e.what_ << " got:" << got;
         // throw exception
         throw std::runtime_error(msg.str());
-    }*/
+    }
     
     if (r == false)
     {
