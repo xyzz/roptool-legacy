@@ -1,6 +1,9 @@
 #ifndef _AST_H_
 #define _AST_H_
 
+// roptool
+#include "Types.h"
+
 // std
 #include <string>
 #include <memory>
@@ -24,7 +27,7 @@ class RopScript;
 template<typename T>
 class DataDeclImpl;
 
-typedef unsigned int Function;
+typedef u64 Function;
 typedef DataDeclImpl<Function> FunctionDataDecl;
 
 class ASTVisitor
@@ -64,6 +67,12 @@ class CallParameter : public ASTVisitable
 		};
 		
 		virtual Type type(void) const = 0;
+		
+		void setBitlen(int bits_n) { m_bits = bits_n; }
+		int bitlen(void) { return m_bits; }
+		
+	private:
+		int m_bits;
 };
 
 typedef std::shared_ptr<CallParameter> CallParameterPtr;
@@ -91,13 +100,13 @@ class ConstantParameter : public CallParameter
 		ConstantParameter(void) { }
 		void traverse(ASTVisitor *visitor);
 		
-		void set(unsigned int val) { m_val = val; }
-		unsigned int value(void) const { return m_val; }
+		void set(u64 val) { m_val = val; }
+		u64 value(void) const { return m_val; }
 		
 		CallParameter::Type type(void) const { return CallParameter::CONSTANT; }
 	
 	private:
-		unsigned int m_val;
+		u64 m_val;
 		
 };
 
@@ -107,7 +116,7 @@ class ReturnParameter : public CallParameter
 		ReturnParameter(void) { }
 		void traverse(ASTVisitor *visitor);
 		
-		unsigned int value(void) const { return 0; }
+		u64 value(void) const { return 0; }
 		CallParameter::Type type(void) const { return CallParameter::RETURN; }
 };
 
@@ -117,13 +126,13 @@ class InlineLoadParameter : public CallParameter
 		InlineLoadParameter(void) { }
 		void traverse(ASTVisitor *visitor);
 		
-		void set(unsigned int address) { m_address = address; }
-		unsigned int value(void) const { return m_address; }
+		void set(u64 address) { m_address = address; }
+		u64 value(void) const { return m_address; }
 		
 		CallParameter::Type type(void) const { return CallParameter::INLINE_LOAD; }
 	
 	private:
-		unsigned int m_address;
+		u64 m_address;
 };
 
 class CallDecl : public ASTVisitable

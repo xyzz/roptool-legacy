@@ -35,13 +35,13 @@ class Compiler : public ASTVisitor
 		VisitablePtr m_ast;
 		TargetPtr m_target;
 		
-		std::map<std::string, unsigned int> m_functions;
+		std::map<std::string, Function> m_functions;
 		
 		// this stores the function call param types
 		std::vector<char> m_param_type;
 		
 		// this stores the function call data references
-		std::vector<unsigned int> m_param;
+		std::vector<u64> m_param;
 };
 
 #endif // _COMPILER_H_

@@ -216,6 +216,7 @@ namespace
 				std::for_each(p.parameters.begin(), p.parameters.end(), [=, &call_data](const Parameter& p)
 				{
 					CallParameter *call_param = boost::apply_visitor(CreateParamaterVisitor(), p.param);
+					call_param->setBitlen(p.size);
 					CallParameterPtr param(call_param);
 					call_data->addParameter(param);
 					std::cout << "got param of size: " << p.size << "\n";

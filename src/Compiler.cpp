@@ -56,7 +56,7 @@ void Compiler::visit_exit(CodeDecl *param)
 
 void Compiler::visit(FunctionDataDecl *param)
 {
-	bool redefined = !m_functions.insert(std::pair<std::string, unsigned int>(param->name(), param->getData())).second;
+	bool redefined = !m_functions.insert(std::pair<std::string, Function>(param->name(), param->getData())).second;
 	
 	if (redefined)
 	{
