@@ -1,5 +1,17 @@
 #include "Compiler.h"
 
+// std
+#include <iostream>
+#include <sstream>
+
+
+u64 Compiler::bit_mask(int bits)
+{
+	u64 mask = 0xFFFFFFFFFFFFFFFFUL;
+	return mask >> (64 - bits); 
+}
+
+
 void Compiler::store_param(u64 value, int val_bits, int arch_bits)
 {
 	// check parameter size
@@ -19,14 +31,14 @@ void Compiler::store_param(u64 value, int val_bits, int arch_bits)
 		for (int i = 0; i < param_n; i++)
 		{
 			m_param_type.push_back('v');
-			m_param.push_back((value >> ((param_n-i-1) * arch_bits)) & (arch_bits-1));
+			m_param.push_back((value >> ((param_n-i-1) * arch_bits)) & bit_mask(arch_bits));
 		}
 	}
 	else
 	{	
 		// just push onto list
 		m_param_type.push_back('v');
-		m_param.push_back(value & (arch_bits-1));
+		m_param.push_back(value & bit_mask(val_bits));
 	}	
 }
 
@@ -82,15 +94,15 @@ void Compiler::visit_exit(CallDecl *param)
 {
 	// add a null terminator and construct string
 	m_param_type.push_back('\0');
-	std::string param_type_list(m_param_type.data());
-	std::string call_prototype = std::string("(") + param_type_list + ")";
 	
-	std::cout << "call prototype: " << call_prototype << "\n";
+	std::string param_type_list = std::string(m_param_type.data());
+	std::string call_prototype = param->name() + std::string("(") + param_type_list + ")";
+	std::cout << call_prototype << "\n";
 }
 
 void Compiler::visit_enter(CodeDecl *param)
 {
-	//std::cout << "code:" << param->name() << std::endl;
+	std::cout << "code:" << param->name() << "\n";
 }
 
 void Compiler::visit_exit(CodeDecl *param)

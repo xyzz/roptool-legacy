@@ -32,6 +32,7 @@ class Compiler : public ASTVisitor
         void visit_exit(RopScript *param);
 
 	private:
+		u64 bit_mask(int bits);
 		void store_param(u64 value, int val_bits, int arch_bits);
 		
 		VisitablePtr m_ast;
