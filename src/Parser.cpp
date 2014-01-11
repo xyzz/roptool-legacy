@@ -1,6 +1,7 @@
 #define BOOST_SPIRIT_USE_PHOENIX_V3
 
 #include "Parser.h"
+#include "Types.h"
 
 #include <vector>
 #include <fstream>
@@ -41,12 +42,12 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 typedef struct
 {
-	unsigned int param;
+	u64 param;
 } ConstantParam;
 
 BOOST_FUSION_ADAPT_STRUCT(
 	ConstantParam,
-	(unsigned int, param)
+	(u64, param)
 )
 
 typedef struct
@@ -61,12 +62,12 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 typedef struct
 {
-	unsigned int address;
+	u64 address;
 } InlineLoadParam;
 
 BOOST_FUSION_ADAPT_STRUCT(
 	InlineLoadParam,
-	(unsigned int, address)
+	(u64, address)
 )
 
 typedef boost::variant<StringParam, ConstantParam, ReturnParam, InlineLoadParam> ParameterType;
@@ -304,7 +305,6 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 		if (m_symtab->find(str) != NULL)
 		{
 			// already exists!
-			//throw std::runtime_error("waddup");/*
 			std::cout << "error: symbol: '" << str << "' already exists!\n";
 			return false;
 		}
@@ -333,8 +333,19 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         code_section = qi::lit("code") > -(qi::lit(':') > identifier) > '{' > *call_decl > '}';
 		call_decl = identifier > '(' > -parameter_list > qi::lit(')') > qi::lit(';');
         parameter_list = param % qi::lit(',');
-		param = (size_symbols > '(' > type_param > ')') | (qi::attr(32) > type_param);
+		param = (byte_param | word_param | dword_param | qword_param) | (qi::attr(32) > type_param);
         type_param = inline_load | string_param | expression_param | return_param;
+		
+		byte_type = byte | type_param;
+		word_type = word | type_param;
+		dword_type = dword | type_param;
+		qword_type = qword | type_param;
+		
+		byte_param = qi::lit("BYTE") > qi::attr(8) > '(' > byte_type > ')';
+		word_param = qi::lit("WORD") > qi::attr(16) > '(' > word_type > ')';
+		dword_param = qi::lit("DWORD") > qi::attr(32) > '(' > dword_type > ')';
+		qword_param = qi::lit("QWORD") > qi::attr(64) > '(' > qword_type > ')'; 
+		
 		string_param = quoted_string;
 		return_param = qi::char_('R') > qi::char_('E') > qi::char_('T');
 		expression_param = expression;
@@ -344,7 +355,6 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
         func_decl = qi::lit("func") > identifier > '='> number > ';';
-        //symbol_decl = qi::lit("symbol") > identifier > '=' > (number | identifier)  > ';';
 		symbol_decl = qi::lit("symbol") > (identifier > '=' > expression > ';')
 			[qi::_pass = phx::bind(&ropscript_grammar::add_symbol, this, qi::_1, qi::_2)];
 		
@@ -358,26 +368,51 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
                         ('/' >> primary_expr[qi::_val /= qi::_1]));
                         
         primary_expr = symtab | number | ('(' > expression > ')');
-        
-        
-        // define what is classed as an identifier
+       
+		// numeric parsers
+		number = hex32 | oct32 | dec32;
+		
+		// hexadecimal
+		hex64 = (qi::lit("0x") | qi::lit("0X")) >> p_hex64;
+		hex32 = (qi::lit("0x") | qi::lit("0X")) >> p_hex32;
+		hex16 = (qi::lit("0x") | qi::lit("0X")) >> p_hex16;
+		hex8 = (qi::lit("0x") | qi::lit("0X")) >> p_hex8;
+		
+		// decimal
+		dec64 = p_dec64;
+		dec32 = p_dec32;
+		dec16 = p_dec16;
+		dec8 = p_dec8;
+		
+		// octal
+		oct64 = qi::lit("0") >> p_oct64;
+		oct32 = qi::lit("0") >> p_oct32;
+		oct16 = qi::lit("0") >> p_oct16;
+		oct8 = qi::lit("0") >> p_oct8;
+		
+		// set individual rules
+		qword = hex64 | dec64 | oct64;
+		dword = hex32 | dec32 | oct32;
+		word = hex16 | dec16 | oct16;
+		byte = hex8 | dec8 | oct8;
+		
+		// string parsers
+        string = qi::lexeme['"' >> +(qi::char_ - '"') >> '"'];
+        quoted_string = qi::lexeme[qi::char_('"') >> +(qi::char_ - '"') >> qi::char_('"')];
+       
+		// define what is classed as an identifier
         // this will include function call names, variable names
         // symbol names and so forth
         identifier =  qi::lexeme[letter >> *(letter | decimal_digit)];
-        decimal = qi::int_;
-        hex = (qi::lit("0x") | qi::lit("0X")) >> qi::hex;
-        octal = qi::lit("0") >> qi::oct;
-        number = hex | octal | decimal;
-        string = qi::lexeme['"' >> +(qi::char_ - '"') >> '"'];
-        quoted_string = qi::lexeme[qi::char_('"') >> +(qi::char_ - '"') >> qi::char_('"')];
-        
+		
         // basic rules define what is a letter and what is a number
         letter = qi::char_("a-zA-Z_");
         decimal_digit = qi::char_("0-9");
         
 		// our error handlers
 		qi::on_error<qi::fail>(symbol_decl, handler(qi::_1, qi::_2, qi::_3, "Symbol redefined"));
-		
+	
+
         // name the rules
         /*ropscript.name("ropscript");
         code_section.name("code_section");
@@ -394,14 +429,66 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         letter.name("letter");
         decimal_digit.name("decimal_digit");*/
     }
+	
+	bool setDefaultWordLength(WordLength wordlen)
+	{
+		// we support 4 word length
+		switch (wordlen)
+		{
+			case QWORD_LENGTH:
+				number = hex64 | dec64 | oct64;
+				break;
+				
+			case DWORD_LENGTH:
+				number = hex32 | dec32 | oct32;
+				break;
+				
+			case WORD_LENGTH:
+				number = hex16 | dec16 | oct16;
+				break;
+				
+			case BYTE_LENGTH:
+				number = hex8 | dec8 | oct8;
+				break;
+				
+			default:
+				return false;
+		}
+		
+		return true;
+	}
     
+	// hex
+	qi::uint_parser<u64, 16, 1, 16> p_hex64;
+	qi::uint_parser<u32, 16, 1, 8> p_hex32;
+	qi::uint_parser<u16, 16, 1, 4> p_hex16;
+	qi::uint_parser<u8, 16, 1, 2> p_hex8;
+	
+	// decimal
+	qi::int_parser<u64, 10> p_dec64;
+	qi::int_parser<u32, 10> p_dec32;
+	qi::int_parser<u16, 10> p_dec16;
+	qi::int_parser<u8, 10> p_dec8;
+	
+	// octal
+	qi::uint_parser<u64, 8> p_oct64;
+	qi::uint_parser<u32, 8> p_oct32;
+	qi::uint_parser<u16, 8> p_oct16;
+	qi::uint_parser<u8, 8> p_oct8;
+	
     qi::rule<Iterator, char()> decimal_digit, letter;
-    qi::rule<Iterator, int()> decimal, octal, hex, number;
+    qi::rule<Iterator, u64()> 	hex64, hex32, hex16, hex8, 
+								dec64, dec32, dec16, dec8,
+								oct64, oct32, oct16, oct8, number;
+								
     qi::rule<Iterator, std::string()> identifier, string, quoted_string;
     qi::rule<Iterator, FunctionData(), skip_grammar<Iterator>> func_decl;
     qi::rule<Iterator, void(), skip_grammar<Iterator>> symbol_decl;
     qi::rule<Iterator, DataDeclImpl_(), skip_grammar<Iterator>> data_section;
     
+	qi::rule<Iterator, ConstantParam(), skip_grammar<Iterator>> qword, dword, word, byte;
+	qi::rule<Iterator, ParameterType(), skip_grammar<Iterator>> byte_type, word_type, dword_type, qword_type;
+	qi::rule<Iterator, Parameter(), skip_grammar<Iterator>> byte_param, word_param, dword_param, qword_param;
     qi::rule<Iterator, StringParam(), skip_grammar<Iterator>> string_param;
     qi::rule<Iterator, ConstantParam(), skip_grammar<Iterator>> expression_param;
     qi::rule<Iterator, ReturnParam(), skip_grammar<Iterator>> return_param;
@@ -414,10 +501,10 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
     qi::rule<Iterator, RopScriptImpl(), skip_grammar<Iterator>> ropscript;
     
     
-    qi::rule<Iterator, int(), skip_grammar<Iterator>> primary_expr;
-    qi::rule<Iterator, int(), skip_grammar<Iterator>> multiplicative_expr;
-    qi::rule<Iterator, int(), skip_grammar<Iterator>> additive_expr;
-    qi::rule<Iterator, int(), skip_grammar<Iterator>> expression;
+    qi::rule<Iterator, u64(), skip_grammar<Iterator>> primary_expr;
+    qi::rule<Iterator, u64(), skip_grammar<Iterator>> multiplicative_expr;
+    qi::rule<Iterator, u64(), skip_grammar<Iterator>> additive_expr;
+    qi::rule<Iterator, u64(), skip_grammar<Iterator>> expression;
 	
 	// error handler
 	phx::function<error_handler<Iterator>> handler;
