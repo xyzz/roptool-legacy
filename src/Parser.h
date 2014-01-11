@@ -11,7 +11,8 @@
 
 // roptool
 #include "AST.h"
+#include "Types.h"
 
-RopScriptShared parse(const char *name);
+RopScriptShared parse(const char *name, WordLength arch_bitlen = DWORD_LENGTH);
 
 #endif // _PARSER_H_

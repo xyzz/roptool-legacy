@@ -82,7 +82,7 @@ int RopTool::start(int argc, char *argv[])
             return 1;
         }
         
-        RopScriptShared ast = parse(source.c_str());
+        RopScriptShared ast = parse(source.c_str(), target->manifest()->arch_bitlen());
 		
 		Compiler compiler;
 		compiler.compile(ast, target);

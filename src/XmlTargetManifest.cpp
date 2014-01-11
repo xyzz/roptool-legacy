@@ -41,12 +41,13 @@ void XmlTargetManifest::set_version(const std::string& version)
 
 void XmlTargetManifest::set_arch_bitlen(const std::string& bitlen)
 {
+	int bits;
 	std::cout << "setting architecture bitlen: \"" << bitlen << "\"\n";
 	
 	// get integer value
 	try
 	{
-		m_bitlen = boost::lexical_cast<int>(bitlen);
+		bits = boost::lexical_cast<int>(bitlen);
 	}
 	
 	catch (const boost::bad_lexical_cast&)
@@ -54,6 +55,29 @@ void XmlTargetManifest::set_arch_bitlen(const std::string& bitlen)
 		// this is a big error, throw exception
 		// \TODO: error handling
 		throw std::runtime_error("Error, Architecture bitlen in target is invalid integer.");
+	}
+	
+	// check different values
+	switch (bits)
+	{
+		case 8:
+			m_bitlen = BYTE_LENGTH;
+			break;
+			
+		case 16:
+			m_bitlen = WORD_LENGTH;
+			break;
+			
+		case 32:
+			m_bitlen = DWORD_LENGTH;
+			break;
+			
+		case 64:
+			m_bitlen = QWORD_LENGTH;
+			break;
+			
+		default:
+			throw std::runtime_error("Error, invalid architecture bit length! Valid values are 8, 16, 32 or 64.");
 	}
 }
 

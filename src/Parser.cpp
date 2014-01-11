@@ -430,18 +430,22 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 		{
 			case QWORD_LENGTH:
 				number = hex64 | dec64 | oct64;
+				param = (byte_param | word_param | dword_param | qword_param) | (qi::attr(64) > type_param);
 				break;
 				
 			case DWORD_LENGTH:
 				number = hex32 | dec32 | oct32;
+				param = (byte_param | word_param | dword_param | qword_param) | (qi::attr(32) > type_param);
 				break;
 				
 			case WORD_LENGTH:
 				number = hex16 | dec16 | oct16;
+				param = (byte_param | word_param | dword_param | qword_param) | (qi::attr(16) > type_param);
 				break;
 				
 			case BYTE_LENGTH:
 				number = hex8 | dec8 | oct8;
+				param = (byte_param | word_param | dword_param | qword_param) | (qi::attr(8) > type_param);
 				break;
 				
 			default:
@@ -503,7 +507,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 	phx::function<error_handler<Iterator>> handler;
 };
 
-RopScriptShared parse(const char *filename)
+RopScriptShared parse(const char *filename, WordLength bitlen)
 {
     std::ifstream ifs;
 	RopScriptImpl out;
@@ -534,6 +538,8 @@ RopScriptShared parse(const char *filename)
     pos_iterator_type position_end;
   
     ropscript_grammar<pos_iterator_type> parser(symtab);
+	parser.setDefaultWordLength(bitlen);
+	
     bool r = false;
     
     try
@@ -564,29 +570,5 @@ RopScriptShared parse(const char *filename)
     }
 
 	// convert RopTool output
-	RopScriptShared script = convertToAST(out);
-	
-    //std::cout << "data:\n";
-    /*std::for_each(out->data.functions.begin(), out->data.functions.end(), [=](const func_pair& p)
-    {
-        std::cout << "\tfunction: " << p.first << " address: " << p.second << "\n";
-    });
- 
-    std::for_each(out->data.symbols.begin(), out->data.symbols.end(), [=](const symbol_pair& p)
-    {
-        std::cout << "\tsymbol: " << p.first << " value: " << p.second << "\n";
-    });
-    
-    std::cout << "code: " << out->code.name << "\n";
-    std::for_each(out->code.call_list.begin(), out->code.call_list.end(), [=](const CallDecl& p)
-    {
-        std::cout << "\tcall: " << p.callee << "\n";
-        std::cout << "\tparams: " << p.parameter_list.size() << "\n";
-        std::for_each(p.parameter_list.begin(), p.parameter_list.end(), [=](const parameter& p)
-        {
-            std::cout << "\t\tparam: " << p << "\n";
-        });
-    });*/
-    
-    return script;
+	return convertToAST(out);
 }
