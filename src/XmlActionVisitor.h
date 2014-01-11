@@ -111,7 +111,7 @@ class XmlActionVisitor : public tinyxml2::XMLVisitor
 				m_used_actions.insert(action);
 				m_actions.at(action)(text.Value());
 			}
-			catch (const std::out_of_range& e)
+			catch (const std::out_of_range&)
 			{
 				// ignore
 			}
