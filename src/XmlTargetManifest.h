@@ -23,8 +23,8 @@ class XmlTargetManifest : public TargetManifest
 		// file setting
 		bool parse(const std::string& file);
 		
-		const std::string& version(void) { return m_version; }
-		
+		const std::string& version(void) const { return m_version; }
+		int arch_bitlen(void) const { return m_bitlen; }
 	private:
 		std::unique_ptr<XmlActionVisitor> m_visitor;
 		std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
