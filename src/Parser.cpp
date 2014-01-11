@@ -239,7 +239,7 @@ namespace
 //
 //#####################################################
 
-typedef qi::symbols<char, unsigned int> SymbolTable;
+typedef qi::symbols<char, u64> SymbolTable;
 
 template <typename Iterator>
 struct skip_grammar : qi::grammar<Iterator> 
@@ -300,7 +300,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 {
 	SymbolTable *m_symtab;
 	
-	bool add_symbol(const std::string& str, unsigned int val)
+	bool add_symbol(const std::string& str, u64 val)
 	{
 		// check map to see if symbol already exists
 		if (m_symtab->find(str) != NULL)
@@ -315,15 +315,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 	}
 	
     ropscript_grammar(SymbolTable &symtab) : ropscript_grammar::base_type(ropscript, "ropscript")
-    {
-		// populate size symbols
-		size_symbols.add
-			("BYTE", 8)
-			("WORD", 16)
-			("DWORD", 32)
-			("QWORD", 64)
-		;
-		
+    {	
 		// get a pointer to the symbol table
 		m_symtab = &symtab;
 		
@@ -509,9 +501,6 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
 	
 	// error handler
 	phx::function<error_handler<Iterator>> handler;
-	
-	// symbol table
-	qi::symbols<char, int> size_symbols;
 };
 
 RopScriptShared parse(const char *filename)
