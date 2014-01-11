@@ -1,5 +1,35 @@
 #include "Compiler.h"
 
+void Compiler::store_param(u64 value, int val_bits, int arch_bits)
+{
+	// check parameter size
+	if (val_bits > arch_bits)
+	{
+		// this parameter is larger than the arch!
+		// we need to store it in adjacent parameters
+		int param_n = val_bits / arch_bits;
+		
+		// align to parameter of 2
+		if (m_param_type.size() % 2)
+		{
+			m_param_type.push_back('v');
+			m_param.push_back(0);
+		}
+		
+		for (int i = 0; i < param_n; i++)
+		{
+			m_param_type.push_back('v');
+			m_param.push_back((value >> ((param_n-i-1) * arch_bits)) & (arch_bits-1));
+		}
+	}
+	else
+	{	
+		// just push onto list
+		m_param_type.push_back('v');
+		m_param.push_back(value & (arch_bits-1));
+	}	
+}
+
 void Compiler::visit(StringParameter *param)
 {
 	// add string to data section
@@ -9,23 +39,37 @@ void Compiler::visit(StringParameter *param)
 
 void Compiler::visit(ConstantParameter *param)
 {
-	// just push onto list
-	m_param_type.push_back('v');
-	m_param.push_back(param->value());
-	std::cout << "got constant value: " << param->value() << "\n";
+	int param_bits = param->bitlen();
+	int arch_bits = m_target->manifest()->arch_bitlen();
+	
+	// store param
+	store_param(param->value(), param_bits, arch_bits);
 }
 
 void Compiler::visit(ReturnParameter *param)
 {
+	int param_bits = param->bitlen();
+	int arch_bits = m_target->manifest()->arch_bitlen();
+	
+	// store param
+	store_param(0, param_bits, arch_bits);
+	
+	// modify last type to type 'r'
+	m_param_type.pop_back();
 	m_param_type.push_back('r');
-	m_param.push_back(0);
 }
 
 void Compiler::visit(InlineLoadParameter *param)
 {
-	// special type of 'l'
+	int param_bits = param->bitlen();
+	int arch_bits = m_target->manifest()->arch_bitlen();
+	
+	// store param
+	store_param(param->value(), param_bits, arch_bits);
+	
+	// modify last type to type 'l'
+	m_param_type.pop_back();
 	m_param_type.push_back('l');
-	m_param.push_back(param->value());
 }
 
 void Compiler::visit_enter(CallDecl *param)
@@ -41,7 +85,7 @@ void Compiler::visit_exit(CallDecl *param)
 	std::string param_type_list(m_param_type.data());
 	std::string call_prototype = std::string("(") + param_type_list + ")";
 	
-	
+	std::cout << "call prototype: " << call_prototype << "\n";
 }
 
 void Compiler::visit_enter(CodeDecl *param)
@@ -91,5 +135,6 @@ void Compiler::visit_exit(RopScript *param)
 
 void Compiler::compile(VisitablePtr ast, TargetPtr target)
 {
+	m_target = target;
 	ast->traverse(this);
 }

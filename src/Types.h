@@ -24,10 +24,10 @@ typedef boost::variant<u64, u32, u16, u8> uint_var;
 // enum to describe available word lengths
 enum WordLength
 {
-	BYTE_LENGTH,
-	WORD_LENGTH,
-	DWORD_LENGTH,
-	QWORD_LENGTH
+	BYTE_LENGTH = 8,
+	WORD_LENGTH = 16,
+	DWORD_LENGTH = 32,
+	QWORD_LENGTH = 64
 };
 
 #endif //ROPTOOL_TYPES_H_
