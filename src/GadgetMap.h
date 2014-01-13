@@ -3,6 +3,8 @@
 
 // roptool
 #include "Gadget.h"
+#include "AST.h"
+#include "DataSection.h"
 
 // std
 #include <string>
@@ -29,6 +31,10 @@ class GadgetMap
 		
 		// get size
 		virtual int size(void) = 0;
+		
+		// setters
+		virtual void setFunction(Function address) = 0;
+		virtual void setParameters(DataRefPtrList refs) = 0;
 		
 		// clone
 		virtual GadgetMapPtr clone(void) const = 0;

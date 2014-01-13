@@ -30,6 +30,11 @@ class XmlGadgetMap : public GadgetMap
 		boost::regex regex(void);
 		void addGadgets(GadgetPtrList gadgets);
 		int size(void) { return m_stack.size(); }
+		
+		// setters
+		void setFunction(Function address);
+		void setParameters(DataRefPtrList refs);
+		
 		std::vector<int> stack(void);
 		
 		GadgetMapPtr clone(void) const { return XmlGadgetMapPtr(new XmlGadgetMap(*this)); }

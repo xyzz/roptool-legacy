@@ -160,10 +160,10 @@ void Compiler::visit_exit(CallDecl *param)
 	
 	std::cout << "map size: " << map->size() << "\n";
 	// set function address
-	//map->setFunction(m_functions.find(param->name())->second);
+	map->setFunction(m_functions.find(param->name())->second);
 	
 	// add the parameters
-	//map->addParameters(m_params);
+	map->setParameters(m_param);
 	
 	// add to function
 	//m_function.add(map);

@@ -9,9 +9,14 @@
 #include <vector>
 #include <memory>
 
-typedef std::function<void(unsigned int)> DataRefHandler;
 
 class DataSection;
+class DataRef;
+
+typedef std::shared_ptr<DataRef> DataRefPtr;
+typedef std::list<DataRefPtr> DataRefPtrList;
+
+typedef std::function<void(DataRefPtr)> DataRefHandler;
 
 class DataRef
 {
@@ -19,6 +24,7 @@ class DataRef
 	
 	public:
 		u64 refId(void) { return m_ref_id; }
+		u64 value(void) { return m_val; }
 		void addValueChangeHandler(DataRefHandler func) { m_handler.push_back(func); }
 	
 	protected:
@@ -31,8 +37,6 @@ class DataRef
 		std::list<DataRefHandler> m_handler;
 		u64 m_ref_id, m_val;
 };
-
-typedef std::shared_ptr<DataRef> DataRefPtr;
 
 class DataSection
 {

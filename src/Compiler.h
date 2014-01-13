@@ -48,7 +48,7 @@ class Compiler : public ASTVisitor
 		std::vector<char> m_param_type;
 		
 		// this stores the function call data references
-		std::vector<DataRefPtr> m_param;
+		DataRefPtrList m_param;
 };
 
 #endif // _COMPILER_H_

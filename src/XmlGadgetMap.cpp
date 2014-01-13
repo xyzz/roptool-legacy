@@ -4,6 +4,10 @@
 // std
 #include <cstdlib>
 #include <stdexcept>
+#include <algorithm>
+
+// boost
+#include <boost/lexical_cast.hpp>
 
 // tinyxml2
 #include <tinyxml2.h>
@@ -107,6 +111,29 @@ std::vector<int> XmlGadgetMap::stack(void)
 	
 	// return stack
 	return data;
+}
+
+
+void XmlGadgetMap::setFunction(Function address)
+{
+	// add definition
+	m_definitions["FUNC_ADDRESS"] = address;
+}
+
+void XmlGadgetMap::setParameters(DataRefPtrList refs)
+{
+	int i = 0;
+	
+	std::for_each(refs.begin(), refs.end(), [&](const DataRefPtr ref)
+	{
+		std::string arg_num = "ARG" + boost::lexical_cast<std::string>(i++);
+		m_definitions[arg_num] = ref->value();
+		
+		ref->addValueChangeHandler([=](DataRefPtr p)
+		{
+			m_definitions[arg_num] = p->value();
+		});
+	});
 }
 
 void XmlGadgetMap::add_stack_data(const std::string& stack_str)
