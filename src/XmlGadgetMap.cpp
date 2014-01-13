@@ -45,17 +45,17 @@ void XmlGadgetMap::set_regex(const std::string& regex_str)
 	m_regex = regex_str;
 }
 
-std::vector<int> XmlGadgetMap::stack(void)
+std::vector<u64> XmlGadgetMap::stack(void)
 {
 	boost::regex gadget_ref("GADGET_ADDRESS\\(([A-Z0-9a-z._%+-]+)\\)");
 	boost::regex number("\\s*[+-]?([1-9][0-9]*|0[0-7]*|0[xX][0-9a-fA-F]+)");
 	boost::cmatch match;
-	std::vector<int> data;
+	std::vector<u64> data;
 	
 	// loop through the stack
 	for (auto it = m_stack.begin(); it != m_stack.end(); it++)
 	{
-		int value = 0;
+		u64 value = 0;
 		
 		// lets see if value has been defined
 		if (m_definitions.find(*it) != m_definitions.end())
@@ -95,7 +95,7 @@ std::vector<int> XmlGadgetMap::stack(void)
 		{
 			// is number
 			std::cout << "is number - " << (*it) << "\n";
-			value = (int)strtoull((*it).c_str(), NULL, 0);
+			value = strtoull((*it).c_str(), NULL, 0);
 		}
 		
 		// default

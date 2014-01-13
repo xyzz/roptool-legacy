@@ -35,7 +35,7 @@ class XmlGadgetMap : public GadgetMap
 		void setFunction(Function address);
 		void setParameters(DataRefPtrList refs);
 		
-		std::vector<int> stack(void);
+		std::vector<u64> stack(void);
 		
 		GadgetMapPtr clone(void) const { return XmlGadgetMapPtr(new XmlGadgetMap(*this)); }
 		
@@ -46,7 +46,7 @@ class XmlGadgetMap : public GadgetMap
 		GadgetPtrList m_gadgets;
 		boost::regex m_regex;
 		std::list<std::string> m_stack;
-		std::map<std::string, int> m_definitions;
+		std::map<std::string, u64> m_definitions;
 		
 		
 		XmlGadgetMap(const XmlGadgetMap& rhs);
