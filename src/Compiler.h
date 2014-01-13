@@ -3,6 +3,7 @@
 
 #include "AST.h"
 #include "Target.h"
+#include "DataSection.h"
 
 // std
 #include <memory>
@@ -33,18 +34,21 @@ class Compiler : public ASTVisitor
 
 	private:
 		u64 bit_mask(int bits);
-		void store_param(u64 value, int val_bits, int arch_bits);
 		
 		VisitablePtr m_ast;
 		TargetPtr m_target;
 		
 		std::map<std::string, Function> m_functions;
 		
+		// data section
+		DataSection m_data_section;
+		DataRefPtr m_zero_ref;
+		
 		// this stores the function call param types
 		std::vector<char> m_param_type;
 		
 		// this stores the function call data references
-		std::vector<u64> m_param;
+		std::vector<DataRefPtr> m_param;
 };
 
 #endif // _COMPILER_H_

@@ -1,4 +1,6 @@
+// roptool
 #include "Compiler.h"
+#include "DataSection.h"
 
 // std
 #include <iostream>
@@ -11,51 +13,61 @@ u64 Compiler::bit_mask(int bits)
 	return mask >> (64 - bits); 
 }
 
-
-void Compiler::store_param(u64 value, int val_bits, int arch_bits)
-{
-	// check parameter size
-	if (val_bits > arch_bits)
-	{
-		// this parameter is larger than the arch!
-		// we need to store it in adjacent parameters
-		int param_n = val_bits / arch_bits;
-		
-		// align to parameter of 2
-		if (m_param_type.size() % 2)
-		{
-			m_param_type.push_back('v');
-			m_param.push_back(0);
-		}
-		
-		for (int i = 0; i < param_n; i++)
-		{
-			m_param_type.push_back('v');
-			m_param.push_back((value >> ((param_n-i-1) * arch_bits)) & bit_mask(arch_bits));
-		}
-	}
-	else
-	{	
-		// just push onto list
-		m_param_type.push_back('v');
-		m_param.push_back(value & bit_mask(val_bits));
-	}	
-}
-
 void Compiler::visit(StringParameter *param)
-{
-	// add string to data section
-	m_param_type.push_back('v');
-	m_param.push_back(0);
-}
-
-void Compiler::visit(ConstantParameter *param)
 {
 	int param_bits = param->bitlen();
 	int arch_bits = m_target->manifest()->arch_bitlen();
 	
-	// store param
-	store_param(param->value(), param_bits, arch_bits);
+	// add string to data section
+	DataRefPtr ref = m_data_section.add(param->value());
+	
+	// store
+	int param_n = param_bits / arch_bits;
+	
+	// if there is more than one param we need to do some dummy params
+	if (param_n > 1)
+	{
+		// align to register
+		if (m_param.size() % 2) param_n++;
+		
+		for (int i = 0; i < (param_n-1); i++)
+		{
+			m_param_type.push_back('v');
+			m_param.push_back(m_zero_ref);
+		}
+	}
+	
+	// record the reference id
+	m_param_type.push_back('v');
+	m_param.push_back(ref);
+}
+
+void Compiler::visit(ConstantParameter *param)
+{
+	std::list<DataRefPtr> refs;
+	int param_bits = param->bitlen();
+	int arch_bits = m_target->manifest()->arch_bitlen();
+	
+	// 	get number of parameters
+	int param_n = param_bits / arch_bits;
+	
+	// if there is more than one param we may need some dummy params
+	if ((param_n > 1) && (m_param.size() % 2))
+	{
+		// align to register
+		m_param_type.push_back('v');
+		m_param.push_back(m_zero_ref);
+	}
+	
+	// create a list
+	for (int i = 0; i < param_n; i++)
+	{
+		DataRefPtr ref = m_data_section.add((param->value() >> ((param_n-i-1) * arch_bits)) & bit_mask(arch_bits));
+		
+		// add reference to list
+		m_param_type.push_back('v');
+		m_param.push_back(ref);
+	}
 }
 
 void Compiler::visit(ReturnParameter *param)
@@ -63,12 +75,26 @@ void Compiler::visit(ReturnParameter *param)
 	int param_bits = param->bitlen();
 	int arch_bits = m_target->manifest()->arch_bitlen();
 	
-	// store param
-	store_param(0, param_bits, arch_bits);
+	// store
+	int param_n = param_bits / arch_bits;
 	
-	// modify last type to type 'r'
-	m_param_type.pop_back();
+	// if there is more than one param we need to do some dummy params
+	if (param_n > 1)
+	{
+		// align to register
+		if (m_param.size() % 2) param_n++;
+		
+		for (int i = 0; i < (param_n-1); i++)
+		{
+			m_param_type.push_back('v');
+			m_param.push_back(m_zero_ref);
+		}
+	}
+	
+	// no data needed, so pass zero.
+	// use param type 'r'
 	m_param_type.push_back('r');
+	m_param.push_back(m_zero_ref);
 }
 
 void Compiler::visit(InlineLoadParameter *param)
@@ -76,18 +102,41 @@ void Compiler::visit(InlineLoadParameter *param)
 	int param_bits = param->bitlen();
 	int arch_bits = m_target->manifest()->arch_bitlen();
 	
-	// store param
-	store_param(param->value(), param_bits, arch_bits);
+	// get constant ref
+	DataRefPtr ref = m_data_section.add(param->value());
 	
-	// modify last type to type 'l'
-	m_param_type.pop_back();
+	// store
+	int param_n = param_bits / arch_bits;
+	
+	// if there is more than one param we need to do some dummy params
+	if (param_n > 1)
+	{
+		// align to register
+		if (m_param.size() % 2) param_n++;
+		
+		for (int i = 0; i < (param_n-1); i++)
+		{
+			m_param_type.push_back('v');
+			m_param.push_back(m_zero_ref);
+		}
+	}
+	
+	// use param type 'l'
 	m_param_type.push_back('l');
+	m_param.push_back(ref);
 }
 
 void Compiler::visit_enter(CallDecl *param)
 {
 	m_param_type.clear();
 	m_param.clear();
+	
+	// check function name is resolvable
+	if (m_functions.find(param->name()) == m_functions.end())
+	{
+		// name not found!
+		throw std::runtime_error("Name not found!");
+	}
 }
 
 void Compiler::visit_exit(CallDecl *param)
@@ -98,11 +147,30 @@ void Compiler::visit_exit(CallDecl *param)
 	std::string param_type_list = std::string(m_param_type.data());
 	std::string call_prototype = param->name() + std::string("(") + param_type_list + ")";
 	std::cout << call_prototype << "\n";
+	
+	// lookup best map
+	/*GadgetMapPtr map = m_target->bestGadgetMap(map);
+	
+	// check for null
+	if (!map)
+	{
+		// waaah
+	}*/
+	
+	// set function address
+	//map->setFunction(m_functions.find(param->name())->second);
+	
+	// add the parameters
+	//map->addParameters(m_params);
+	
+	// add to function
+	//m_function.add(map);
 }
 
 void Compiler::visit_enter(CodeDecl *param)
 {
 	std::cout << "code:" << param->name() << "\n";
+	//m_function = m_code_section.create(param->name());
 }
 
 void Compiler::visit_exit(CodeDecl *param)
@@ -147,6 +215,9 @@ void Compiler::visit_exit(RopScript *param)
 
 void Compiler::compile(VisitablePtr ast, TargetPtr target)
 {
+	// get a reference to zero
+	m_zero_ref = m_data_section.add(0);
+	
 	m_target = target;
 	ast->traverse(this);
 }
