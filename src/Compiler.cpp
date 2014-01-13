@@ -149,14 +149,16 @@ void Compiler::visit_exit(CallDecl *param)
 	std::cout << call_prototype << "\n";
 	
 	// lookup best map
-	/*GadgetMapPtr map = m_target->bestGadgetMap(map);
+	GadgetMapPtr map = m_target->bestGadgetMap(call_prototype);
 	
 	// check for null
 	if (!map)
 	{
-		// waaah
-	}*/
+		// no map found!
+		throw std::runtime_error("Target has no support for call scheme: " + param_type_list);
+	}
 	
+	std::cout << "map size: " << map->size() << "\n";
 	// set function address
 	//map->setFunction(m_functions.find(param->name())->second);
 	

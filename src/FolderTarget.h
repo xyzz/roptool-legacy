@@ -26,6 +26,9 @@ class FolderTarget : public Target
 		// 
 		TargetManifestPtr manifest(void) { return m_manifest; }
 		
+		// get the best  gadget map
+		GadgetMapPtr bestGadgetMap(const std::string& regex);
+		
 	private:
 		std::string m_name;
 		std::string m_path;

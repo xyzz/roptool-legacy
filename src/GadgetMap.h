@@ -12,6 +12,10 @@
 // boost
 #include <boost/regex.hpp>
 
+class GadgetMap;
+typedef std::shared_ptr<GadgetMap> GadgetMapPtr;
+typedef std::vector<GadgetMapPtr> GadgetMapPtrList;
+
 class GadgetMap
 {
 	public:
@@ -22,9 +26,12 @@ class GadgetMap
 		
 		// add gadgets
 		virtual void addGadgets(GadgetPtrList gadgets) = 0;
+		
+		// get size
+		virtual int size(void) = 0;
+		
+		// clone
+		virtual GadgetMapPtr clone(void) const = 0;
 };
-
-typedef std::shared_ptr<GadgetMap> GadgetMapPtr;
-typedef std::vector<GadgetMapPtr> GadgetMapPtrList;
 
 #endif // _GADGET_MAP_H_

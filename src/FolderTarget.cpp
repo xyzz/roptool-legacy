@@ -73,6 +73,38 @@ void FolderTarget::readGadgetMaps(void)
 		// add to list
 		m_gadgetmaps.push_back(gadgetmap);
 	});
+	
+	// sort by size
+	std::sort(m_gadgetmaps.begin(), m_gadgetmaps.end(), [=](GadgetMapPtr i, GadgetMapPtr j) -> bool
+	{
+		return (i->size() < j->size());
+	});
+}
+
+GadgetMapPtr FolderTarget::bestGadgetMap(const std::string& prototype)
+{
+	// create regular expression
+	GadgetMapPtr map;
+	
+	// loop through gadgetmaps
+	auto it = std::find_if(m_gadgetmaps.begin(), m_gadgetmaps.end(), [=](GadgetMapPtr map) -> bool
+	{
+		boost::cmatch match;
+		
+		// first element that is valid should be smallest since list is sorted
+		return (boost::regex_match(prototype.c_str(), match, map->regex()));
+	});
+	
+	// check if beyond range
+	if (it == m_gadgetmaps.end())
+	{
+		// no gadget found!
+		return map;
+	}
+	
+	// copy the gadgetmap
+	map = (*it)->clone();
+	return map;
 }
 
 void FolderTarget::setName(const std::string& name)

@@ -3,6 +3,7 @@
 
 // roptool
 #include "TargetManifest.h"
+#include "GadgetMap.h"
 
 // std
 #include <string>
@@ -22,6 +23,8 @@ class Target
 		virtual const std::string& name(void) = 0;
 		virtual void setName(const std::string& name) = 0;
 		virtual TargetManifestPtr manifest(void) = 0;
+		
+		virtual GadgetMapPtr bestGadgetMap(const std::string& regex) = 0;
 		
 		/* GadgetMapList gadgetMaps(void) = 0;
 		GadgetList gadgets(void) = 0; */

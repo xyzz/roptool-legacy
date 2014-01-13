@@ -141,6 +141,24 @@ XmlGadgetMap::XmlGadgetMap(void)
 	m_visitor->addHandler("gadgetmap-stack-data", std::bind(&XmlGadgetMap::add_stack_data, this, _1), true);
 }
 
+XmlGadgetMap::XmlGadgetMap(const XmlGadgetMap& rhs)
+{
+	using namespace std::placeholders;
+	
+	// create visitor
+	m_visitor.reset(new XmlActionVisitor());
+	
+	// add handlers
+	m_visitor->addHandler("gadgetmap-regex", std::bind(&XmlGadgetMap::set_regex, this, _1), true);
+	m_visitor->addHandler("gadgetmap-stack-data", std::bind(&XmlGadgetMap::add_stack_data, this, _1), true);
+
+	// copy data
+	m_stack = rhs.m_stack;
+	m_gadgets = rhs.m_gadgets;
+	m_regex = rhs.m_regex;
+	m_definitions = rhs.m_definitions;
+}
+
 XmlGadgetMap::~XmlGadgetMap(void)
 {
 
