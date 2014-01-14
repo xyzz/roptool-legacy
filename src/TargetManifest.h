@@ -10,11 +10,11 @@
 
 class TargetManifest
 {
-	public:
-		virtual bool parse(const std::string& target) = 0;
-		
-		virtual const std::string& version(void) const = 0;
-		virtual WordLength arch_bitlen(void) const = 0;
+    public:
+        virtual bool parse(const std::string& target) = 0;
+        
+        virtual const std::string& version(void) const = 0;
+        virtual WordLength arch_bitlen(void) const = 0;
 };
 
 typedef std::shared_ptr<TargetManifest> TargetManifestPtr;
