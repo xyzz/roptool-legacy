@@ -15,33 +15,33 @@
 
 class FolderTarget : public Target
 {
-	public:
-		FolderTarget(void) { }
-		FolderTarget(const std::string& name) { setName(name); }
-		
-		// accessor/mutator
-		const std::string& name(void) { return m_name; }
-		void setName(const std::string& name);
-		
-		// 
-		TargetManifestPtr manifest(void) { return m_manifest; }
-		
-		// get the best  gadget map
-		GadgetMapPtr bestGadgetMap(const std::string& regex);
-		
-	private:
-		std::string m_name;
-		std::string m_path;
-		GadgetPtrList m_gadgets;
-		GadgetMapPtrList m_gadgetmaps;
-		TargetManifestPtr m_manifest;
-		
-		void readManifest(void);
-		void readGadgets(void);
-		void readGadgetMaps(void);
-		
-		typedef std::vector<boost::filesystem::path> DirectoryList;
-		DirectoryList read_directory(const boost::filesystem::path& dir);
+    public:
+        FolderTarget(void) { }
+        FolderTarget(const std::string& name) { setName(name); }
+        
+        // accessor/mutator
+        const std::string& name(void) { return m_name; }
+        void setName(const std::string& name);
+        
+        // 
+        TargetManifestPtr manifest(void) { return m_manifest; }
+        
+        // get the best  gadget map
+        GadgetMapPtr bestGadgetMap(const std::string& regex);
+        
+    private:
+        std::string m_name;
+        std::string m_path;
+        GadgetPtrList m_gadgets;
+        GadgetMapPtrList m_gadgetmaps;
+        TargetManifestPtr m_manifest;
+        
+        void readManifest(void);
+        void readGadgets(void);
+        void readGadgetMaps(void);
+        
+        typedef std::vector<boost::filesystem::path> DirectoryList;
+        DirectoryList read_directory(const boost::filesystem::path& dir);
 };
 
 #endif // _FOLDER_TARGET_H_

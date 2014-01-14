@@ -55,24 +55,24 @@ class ASTVisitable
 
 class CallParameter : public ASTVisitable
 {
-    public:		
+    public:        
         void traverse(ASTVisitor *visitor) = 0;
-		
-		enum Type
-		{
-			CONSTANT = 0,
-			STRING,
-			RETURN,
-			INLINE_LOAD,
-		};
-		
-		virtual Type type(void) const = 0;
-		
-		void setBitlen(int bits_n) { m_bits = bits_n; }
-		int bitlen(void) { return m_bits; }
-		
-	private:
-		int m_bits;
+        
+        enum Type
+        {
+            CONSTANT = 0,
+            STRING,
+            RETURN,
+            INLINE_LOAD,
+        };
+        
+        virtual Type type(void) const = 0;
+        
+        void setBitlen(int bits_n) { m_bits = bits_n; }
+        int bitlen(void) { return m_bits; }
+        
+    private:
+        int m_bits;
 };
 
 typedef std::shared_ptr<CallParameter> CallParameterPtr;
@@ -80,59 +80,59 @@ typedef std::vector<CallParameterPtr> CallParameterPtrList;
 
 class StringParameter : public CallParameter
 {
-	public:
-		StringParameter(void) { }
-		void traverse(ASTVisitor *visitor);
-		
-		void set(const std::string& str) { m_str = str; }
-		const std::string& value(void) const { return m_str; }
-		
-		CallParameter::Type type(void) const { return CallParameter::STRING; }
-	
-	private:
-		std::string m_str;
-		
+    public:
+        StringParameter(void) { }
+        void traverse(ASTVisitor *visitor);
+        
+        void set(const std::string& str) { m_str = str; }
+        const std::string& value(void) const { return m_str; }
+        
+        CallParameter::Type type(void) const { return CallParameter::STRING; }
+    
+    private:
+        std::string m_str;
+        
 };
 
 class ConstantParameter : public CallParameter
 {
-	public:
-		ConstantParameter(void) { }
-		void traverse(ASTVisitor *visitor);
-		
-		void set(u64 val) { m_val = val; }
-		u64 value(void) const { return m_val; }
-		
-		CallParameter::Type type(void) const { return CallParameter::CONSTANT; }
-	
-	private:
-		u64 m_val;
-		
+    public:
+        ConstantParameter(void) { }
+        void traverse(ASTVisitor *visitor);
+        
+        void set(u64 val) { m_val = val; }
+        u64 value(void) const { return m_val; }
+        
+        CallParameter::Type type(void) const { return CallParameter::CONSTANT; }
+    
+    private:
+        u64 m_val;
+        
 };
 
 class ReturnParameter : public CallParameter
 {
-	public:
-		ReturnParameter(void) { }
-		void traverse(ASTVisitor *visitor);
-		
-		u64 value(void) const { return 0; }
-		CallParameter::Type type(void) const { return CallParameter::RETURN; }
+    public:
+        ReturnParameter(void) { }
+        void traverse(ASTVisitor *visitor);
+        
+        u64 value(void) const { return 0; }
+        CallParameter::Type type(void) const { return CallParameter::RETURN; }
 };
 
 class InlineLoadParameter : public CallParameter
 {
-	public:
-		InlineLoadParameter(void) { }
-		void traverse(ASTVisitor *visitor);
-		
-		void set(u64 address) { m_address = address; }
-		u64 value(void) const { return m_address; }
-		
-		CallParameter::Type type(void) const { return CallParameter::INLINE_LOAD; }
-	
-	private:
-		u64 m_address;
+    public:
+        InlineLoadParameter(void) { }
+        void traverse(ASTVisitor *visitor);
+        
+        void set(u64 address) { m_address = address; }
+        u64 value(void) const { return m_address; }
+        
+        CallParameter::Type type(void) const { return CallParameter::INLINE_LOAD; }
+    
+    private:
+        u64 m_address;
 };
 
 class CallDecl : public ASTVisitable

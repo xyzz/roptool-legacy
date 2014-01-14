@@ -47,9 +47,9 @@ void CallDecl::traverse(ASTVisitor *visitor)
     
     // pass on traversal to parameters
     traverse_tree(parameters(), visitor);
-	
-	// notify visitor
-	visitor->visit_exit(this);
+    
+    // notify visitor
+    visitor->visit_exit(this);
 }
 
 void CodeDecl::traverse(ASTVisitor *visitor)
@@ -59,9 +59,9 @@ void CodeDecl::traverse(ASTVisitor *visitor)
     
     // pass on traversal to calls
     traverse_tree(calls(), visitor);
-	
-	// notify visitor
-	visitor->visit_exit(this);
+    
+    // notify visitor
+    visitor->visit_exit(this);
 }
 
 template<>
@@ -88,7 +88,7 @@ void RopScript::traverse(ASTVisitor *visitor)
     // pass on traversal of data & code elements
     traverse_tree(data(), visitor);
     traverse_tree(code(), visitor);
-	
-	// notify visitor
-	visitor->visit_exit(this);
+    
+    // notify visitor
+    visitor->visit_exit(this);
 }

@@ -11,14 +11,14 @@
 
 class Compiler : public ASTVisitor
 {
-	public:
-		// CTOR
-		Compiler(void) { }
-		
-		// compile
-		void compile(VisitablePtr m_ast, TargetPtr m_target);
-		
-		// visitor methods
+    public:
+        // CTOR
+        Compiler(void) { }
+        
+        // compile
+        void compile(VisitablePtr m_ast, TargetPtr m_target);
+        
+        // visitor methods
         void visit(StringParameter *param);
         void visit(ConstantParameter *param);
         void visit(ReturnParameter *param);
@@ -32,23 +32,23 @@ class Compiler : public ASTVisitor
         void visit_enter(RopScript *param);
         void visit_exit(RopScript *param);
 
-	private:
-		u64 bit_mask(int bits);
-		
-		VisitablePtr m_ast;
-		TargetPtr m_target;
-		
-		std::map<std::string, Function> m_functions;
-		
-		// data section
-		DataSection m_data_section;
-		DataRefPtr m_zero_ref;
-		
-		// this stores the function call param types
-		std::vector<char> m_param_type;
-		
-		// this stores the function call data references
-		DataRefPtrList m_param;
+    private:
+        u64 bit_mask(int bits);
+        
+        VisitablePtr m_ast;
+        TargetPtr m_target;
+        
+        std::map<std::string, Function> m_functions;
+        
+        // data section
+        DataSection m_data_section;
+        DataRefPtr m_zero_ref;
+        
+        // this stores the function call param types
+        std::vector<char> m_param_type;
+        
+        // this stores the function call data references
+        DataRefPtrList m_param;
 };
 
 #endif // _COMPILER_H_
