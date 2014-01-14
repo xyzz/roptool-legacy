@@ -248,7 +248,8 @@ struct skip_grammar : qi::grammar<Iterator>
     {
         // skip lines
         line_comment = (qi::lit("//") >> *(ascii::char_ - qi::eol) >> qi::eol);
-        block_comment = (qi::lit("/*") >> *(ascii::char_ - '*') >> +qi::lit('*') >> '/');
+		block_comment = qi::lit("/*") >> *(qi::char_ - "*/") >> qi::lit("*/");
+		
         skipper = ascii::space | line_comment | block_comment;
     }
     
