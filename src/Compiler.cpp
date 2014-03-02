@@ -1,6 +1,7 @@
 // roptool
 #include "Compiler.h"
 #include "DataSection.h"
+#include "RopFunctionCall.h"
 
 // std
 #include <iostream>
