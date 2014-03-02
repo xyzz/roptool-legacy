@@ -2,7 +2,7 @@
 #define _ROP_SECTION_H_
 
 // roptool
-#include "RopFunctionCall.h"
+#include "RopFunction.h"
 
 // std
 #include <memory>
@@ -10,13 +10,10 @@
 class RopSection
 {
     public:
-        const std::string& name(void);
-        void setName(const std::string& name);
-        void add(const RopFunctionCallPtr& call);
+        bool add(const RopFunctionPtr& func);
        
     private:
-        std::string m_name;
-        RopFunctionCallPtrList m_calls;
+        RopFunctionPtrList m_funcs;
 };
 
 typedef std::shared_ptr<RopSection> RopSectionPtr;

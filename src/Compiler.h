@@ -4,6 +4,7 @@
 #include "AST.h"
 #include "Target.h"
 #include "DataSection.h"
+#include "RopSection.h"
 
 // std
 #include <memory>
@@ -43,6 +44,9 @@ class Compiler : public ASTVisitor
         // data section
         DataSection m_data_section;
         DataRefPtr m_zero_ref;
+        
+        // rop section
+        RopSection m_rop_section;
         
         // this stores the function call param types
         std::vector<char> m_param_type;

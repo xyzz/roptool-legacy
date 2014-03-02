@@ -1,17 +1,23 @@
 // roptool
 #include "RopSection.h"
 
-const std::string& RopSection::name(void)
+bool RopSection::add(const RopFunctionPtr& func)
 {
-    return m_name;
-}
-
-void RopSection::setName(const std::string& name)
-{
-    m_name = name;
-}
-
-void RopSection::add(const RopFunctionCallPtr& call)
-{
-    m_calls.push_back(call);
+    // check if we have a function with this name already
+    auto it = std::find_if(m_funcs.begin(), m_funcs.end(), [&](const RopFunctionPtr& func_ptr)
+    {
+        // check if names are equal
+        return (func->name() == func_ptr->name());
+    });
+    
+    // check if iterator is valid
+    if (it != m_funcs.end())
+    {
+        // function already added with same name
+        return false;
+    }
+    
+    // add to list
+    m_funcs.push_back(func);
+    return true;
 }
