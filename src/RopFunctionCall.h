@@ -1,12 +1,13 @@
 #ifndef _ROP_FUNCTION_CALL_H_
 #define _ROP_FUNCTION_CALL_H_
 
+// roptool
+#include "GadgetMap.h"
+#include "Target.h"
+
 // std
 #include <memory>
 #include <list>
-
-// roptool
-#include "GadgetMap.h"
 
 class RopFunctionCall
 {
@@ -14,7 +15,7 @@ class RopFunctionCall
         void setMap(GadgetMapPtr map);
         void setFunction(Function func);
         void setParameters(DataRefPtrList refs);
-        std::vector<u8> binary(WordLength bits, bool little_endian);
+        std::vector<u8> binary(TargetPtr target);
         
     private:
         GadgetMapPtr m_map;

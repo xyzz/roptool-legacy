@@ -17,7 +17,7 @@ void RopFunctionCall::setParameters(DataRefPtrList refs)
     m_refs = refs;
 }
 
-std::vector<u8> RopFunctionCall::binary(WordLength bits, bool little_endian)
+std::vector<u8> RopFunctionCall::binary(TargetPtr target)
 {
     std::vector<u8> output;
     
@@ -28,13 +28,16 @@ std::vector<u8> RopFunctionCall::binary(WordLength bits, bool little_endian)
     // get the stack data
     std::vector<u64> stack = m_map->stack();
     
+    // \todo: automatically obtain this
+    bool little_endian = true;
+    
     // loop through the stack and convert it to what we need
     for (unsigned int i = 0; i < stack.size(); i++)
     {
         u64 stack_val = stack.at(i);
         
         // write endianness
-        for (int k = 0; k < bits; k += 8)
+        for (int k = 0; k < target->manifest()->arch_bitlen(); k += 8)
         {
             // is little endian?
             if (little_endian)
@@ -45,7 +48,7 @@ std::vector<u8> RopFunctionCall::binary(WordLength bits, bool little_endian)
             else
             {
                 // msb fist
-                output.push_back((stack_val >> (bits - k - 8)) & 0xFF);
+                output.push_back((stack_val >> (target->manifest()->arch_bitlen() - k - 8)) & 0xFF);
             }
         }
     }

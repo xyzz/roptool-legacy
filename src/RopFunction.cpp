@@ -16,7 +16,7 @@ void RopFunction::add(const RopFunctionCallPtr& call)
     m_calls.push_back(call);
 }
 
-std::vector<u8> RopFunction::binary(WordLength bits, bool little_endian)
+std::vector<u8> RopFunction::binary(TargetPtr target)
 {
     std::vector<u8> function_bin;
     
@@ -24,8 +24,12 @@ std::vector<u8> RopFunction::binary(WordLength bits, bool little_endian)
     std::for_each(m_calls.begin(), m_calls.end(), [&](const RopFunctionCallPtr& call)
     {
         // get the binary blob
-        std::vector<u8> call_bin = call->binary(bits, little_endian);
+        std::vector<u8> call_bin = call->binary(target);
         function_bin.insert(function_bin.end(), call_bin.begin(), call_bin.end());
+        
+        // add our caller gadget
+        
+        
     });
     
     return function_bin;
