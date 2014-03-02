@@ -14,7 +14,8 @@ class RopFunction
         const std::string& name(void);
         void setName(const std::string& name);
         void add(const RopFunctionCallPtr& call);
-       
+        std::vector<u8> binary(WordLength bits, bool little_endian);
+        
     private:
         std::string m_name;
         RopFunctionCallPtrList m_calls;

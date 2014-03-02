@@ -25,6 +25,7 @@ class GadgetMap
         
         // gadget map information
         virtual boost::regex regex(void) = 0;
+        virtual std::vector<u64> stack(void) = 0;
         
         // add gadgets
         virtual void addGadgets(GadgetPtrList gadgets) = 0;

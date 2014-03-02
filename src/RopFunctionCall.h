@@ -14,6 +14,7 @@ class RopFunctionCall
         void setMap(GadgetMapPtr map);
         void setFunction(Function func);
         void setParameters(DataRefPtrList refs);
+        std::vector<u8> binary(WordLength bits, bool little_endian);
         
     private:
         GadgetMapPtr m_map;
