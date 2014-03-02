@@ -158,16 +158,25 @@ void Compiler::visit_exit(CallDecl *param)
         throw std::runtime_error("Target has no support for call scheme: " + param_type_list);
     }
     
+    RopFunctionCallPtr function_call(new RopFunctionCall);
+    
+    // set function call data
+    function_call->setMap(map);
+    function_call->setFunction(m_functions.find(param->name())->second);
+    function_call->setParameters(m_param);
+    
     std::cout << "map size: " << map->size() << "\n";
+    
     // set function address
-    map->setFunction(m_functions.find(param->name())->second);
+   // map->setFunction(m_functions.find(param->name())->second);
     
     // add the parameters
-    map->setParameters(m_param);
+    //map->setParameters(m_param);
     
     m_data_section.setBase(0x12345678);
+    
     // add to function
-    //m_function.add(map);
+    //m_function.add(function_call);
 }
 
 void Compiler::visit_enter(CodeDecl *param)
