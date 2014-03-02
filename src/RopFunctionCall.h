@@ -3,6 +3,7 @@
 
 // std
 #include <memory>
+#include <list>
 
 // roptool
 #include "GadgetMap.h"
@@ -21,5 +22,6 @@ class RopFunctionCall
 };
 
 typedef std::shared_ptr<RopFunctionCall> RopFunctionCallPtr;
+typedef std::list<RopFunctionCallPtr> RopFunctionCallPtrList;
 
 #endif _ROP_FUNCTION_CALL_H_
