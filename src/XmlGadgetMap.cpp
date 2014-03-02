@@ -82,7 +82,7 @@ std::vector<u64> XmlGadgetMap::stack(void)
             if (gadget_it == m_gadgets.end())
             {
                 // \TODO: we need to do better responses
-                throw std::runtime_error("Error, no reference to gadget: " + match[1].str());
+                throw std::runtime_error("Error, reference to nonexistant gadget: " + match[1].str());
             }
             
             // get the address
