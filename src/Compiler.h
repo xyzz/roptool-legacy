@@ -47,6 +47,7 @@ class Compiler : public ASTVisitor
         
         // rop section
         RopSection m_rop_section;
+        RopFunctionPtr m_rop_func;
         
         // this stores the function call param types
         std::vector<char> m_param_type;

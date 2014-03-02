@@ -1,6 +1,7 @@
 // roptool
 #include "Compiler.h"
 #include "DataSection.h"
+#include "RopFunction.h"
 #include "RopFunctionCall.h"
 
 // std
@@ -135,8 +136,11 @@ void Compiler::visit_enter(CallDecl *param)
     // check function name is resolvable
     if (m_functions.find(param->name()) == m_functions.end())
     {
+        std::string err_msg;
+        err_msg = err_msg + "Name: \"" + param->name() + "\" not found!";
+        
         // name not found!
-        throw std::runtime_error("Name not found!");
+        throw std::runtime_error(err_msg.c_str());
     }
 }
 
@@ -168,27 +172,17 @@ void Compiler::visit_exit(CallDecl *param)
     
     std::cout << "map size: " << map->size() << "\n";
     
-    // set function address
-   // map->setFunction(m_functions.find(param->name())->second);
-    
-    // add the parameters
-    //map->setParameters(m_param);
-    
-    m_data_section.setBase(0x12345678);
-    
-    // add to function
-    //m_function.add(function_call);
+    m_rop_func->add(function_call);
 }
 
 void Compiler::visit_enter(CodeDecl *param)
 {
-    std::cout << "code:" << param->name() << "\n";
-    //m_function = m_code_section.create(param->name());
+    m_rop_func.reset(new RopFunction);
 }
 
 void Compiler::visit_exit(CodeDecl *param)
 {
-    //std::cout << "code:" << param->name() << std::endl;
+    m_rop_section.add(m_rop_func);
 }
 
 void Compiler::visit(FunctionDataDecl *param)
