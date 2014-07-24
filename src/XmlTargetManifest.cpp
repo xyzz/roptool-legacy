@@ -81,6 +81,30 @@ void XmlTargetManifest::set_arch_bitlen(const std::string& bitlen)
     }
 }
 
+void XmlTargetManifest::set_stack_alignment(const std::string& stack_alignment)
+{
+    std::cout << "got stack alignment: " << stack_alignment << "\n";
+    
+    // get integer value
+    try
+    {
+        m_stack_alignment = std::stoul(stack_alignment, nullptr, 0);
+    }
+    
+    catch (const std::invalid_argument&)
+    {
+        // this is a big error, throw exception
+        // \TODO: error handling
+        throw std::runtime_error("Error, stack alignment is an invalid integer");
+    }
+}
+
+void XmlTargetManifest::set_caller_gadget(const std::string& caller_gadget)
+{
+    std::cout << "got caller gadget: " << caller_gadget << "\n";
+    m_caller_gadget = caller_gadget;
+}
+   
 XmlTargetManifest::XmlTargetManifest(void)
 {
     using namespace std::placeholders;
@@ -91,8 +115,12 @@ XmlTargetManifest::XmlTargetManifest(void)
     // add handlers
     VisitorAction set_version = std::bind(&XmlTargetManifest::set_version, this, _1);
     VisitorAction set_arch_bitlen = std::bind(&XmlTargetManifest::set_arch_bitlen, this, _1);
+    VisitorAction set_stack_alignment = std::bind(&XmlTargetManifest::set_stack_alignment, this, _1);
+    VisitorAction set_caller_gadget = std::bind(&XmlTargetManifest::set_caller_gadget, this, _1);
     m_visitor->addHandler("version", set_version, true);
     m_visitor->addHandler("arch_bitlen", set_arch_bitlen, true);
+    m_visitor->addHandler("stack_alignment", set_stack_alignment, true);
+    m_visitor->addHandler("caller_gadget", set_caller_gadget, true);
 }
 
 XmlTargetManifest::~XmlTargetManifest(void)

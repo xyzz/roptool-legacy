@@ -15,6 +15,9 @@ class TargetManifest
         
         virtual const std::string& version(void) const = 0;
         virtual WordLength arch_bitlen(void) const = 0;
+        virtual int stack_alignment(void) const = 0;
+        virtual const std::string& caller_gadget(void) const = 0;
+        
 };
 
 typedef std::shared_ptr<TargetManifest> TargetManifestPtr;
