@@ -28,8 +28,29 @@ std::vector<u8> RopFunction::binary(TargetPtr target)
         function_bin.insert(function_bin.end(), call_bin.begin(), call_bin.end());
         
         // add our caller gadget
+        GadgetPtr caller = target->getCallerGadget();
         
+        // get the endianness 
+        bool little_endian = true;
         
+        while (function_bin.size() % target->manifest()->stack_alignment())
+        {
+            // write endianness
+            for (int k = 0; k < target->manifest()->arch_bitlen(); k += 8)
+            {
+                // is little endian?
+                if (little_endian)
+                {
+                    // lsb first
+                    function_bin.push_back((caller->address() >> k) & 0xFF);
+                }
+                else
+                {
+                    // msb fist
+                    function_bin.push_back((caller->address() >> (target->manifest()->arch_bitlen() - k - 8)) & 0xFF);
+                }
+            }
+        }
     });
     
     return function_bin;
