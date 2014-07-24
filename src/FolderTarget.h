@@ -29,6 +29,9 @@ class FolderTarget : public Target
         // get the best  gadget map
         GadgetMapPtr bestGadgetMap(const std::string& regex);
         
+        // get the caller gadget
+        GadgetPtr getCallerGadget(void);
+        
     private:
         std::string m_name;
         std::string m_path;

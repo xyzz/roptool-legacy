@@ -107,6 +107,28 @@ GadgetMapPtr FolderTarget::bestGadgetMap(const std::string& prototype)
     return map;
 }
 
+GadgetPtr FolderTarget::getCallerGadget(void)
+{
+    // loop through gadgets
+    auto it = std::find_if(m_gadgets.begin(), m_gadgets.end(), [=](GadgetPtr gadget) -> bool
+    {
+        return (gadget->name() == m_manifest->caller_gadget());
+    });
+    
+    // check if we never got one
+    if (it == m_gadgets.end())
+    {
+        std::string err;
+        err = err + "Caller gadget \"" + m_manifest->caller_gadget() + "\" not found!";
+        
+        // caller gadget is not defined
+        throw std::runtime_error(err.c_str()); 
+    }
+    
+    // return the gadget
+    return *it;
+}
+
 void FolderTarget::setName(const std::string& name)
 {
     // set name

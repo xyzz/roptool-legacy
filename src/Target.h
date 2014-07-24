@@ -26,6 +26,8 @@ class Target
         
         virtual GadgetMapPtr bestGadgetMap(const std::string& regex) = 0;
         
+        virtual GadgetPtr getCallerGadget(void) = 0;
+        
         /* GadgetMapList gadgetMaps(void) = 0;
         GadgetList gadgets(void) = 0; */
     
