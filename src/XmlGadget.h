@@ -23,7 +23,7 @@ class XmlGadget : public Gadget
         
         bool parse(const std::string& file);
         
-        int address(void);
+        u64 address(void);
         void set_address(const std::string& str_address);
         
         const std::string& name(void);
@@ -33,7 +33,7 @@ class XmlGadget : public Gadget
         std::unique_ptr<tinyxml2::XMLDocument> m_xmldoc;
         
         std::string m_name;
-        int m_address;
+        u64 m_address;
 };
 
 typedef std::shared_ptr<XmlGadget> XmlGadgetPtr;

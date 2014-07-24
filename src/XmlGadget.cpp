@@ -32,7 +32,7 @@ bool XmlGadget::parse(const std::string& file)
     return true;
 }
 
-int XmlGadget::address(void)
+u64 XmlGadget::address(void)
 {
     return m_address;
 }
@@ -40,7 +40,7 @@ int XmlGadget::address(void)
 void XmlGadget::set_address(const std::string& address)
 {
     // use strtoul for conversion.
-    m_address = std::strtoul(address.c_str(), NULL, 0);
+    m_address = std::strtoull(address.c_str(), NULL, 0);
 }
 
 
