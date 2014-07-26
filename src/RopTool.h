@@ -23,10 +23,11 @@ class RopTool
         cmd_options get_options(void);
         void set_target(const std::string& target);
         void set_source(const std::string& source);
+        void set_output(const std::string& output);
         
         // variables
         TargetPtr target;
-        std::string source;
+        std::string source, output;
         
         // we have a variable map and options
         boost::program_options::variables_map m_vm;

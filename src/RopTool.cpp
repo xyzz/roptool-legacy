@@ -3,10 +3,12 @@
 #include "Parser.h"
 #include "FolderTarget.h"
 #include "CodeGenerator.h"
+#include "Program.h"
 #include "Debug.h"
 
 // std
 #include <iostream>
+#include <fstream>
 
 // boost
 #include <boost/bind.hpp>
@@ -26,6 +28,11 @@ void RopTool::set_source(const std::string& source)
     this->source = source;
 }
 
+void RopTool::set_output(const std::string& output)
+{
+    this->output = output;
+}
+
 RopTool::cmd_options RopTool::get_options(void)
 {
     // check if there are any options already created by this function
@@ -42,8 +49,8 @@ RopTool::cmd_options RopTool::get_options(void)
         ("help,h", "Show this help dialog.")
         ("verbose,v", "Show verbose output.")
         ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.")
-        ("source,s", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_source, this, _1)), "Source ropscript file to compile.");
-        
+        ("source,s", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_source, this, _1)), "Source ropscript file to compile.")
+        ("output,o", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_output, this, _1)), "Path to output file.");
     return m_options;
 }
 
@@ -82,11 +89,24 @@ int RopTool::start(int argc, char *argv[])
             return 1;
         }
         
+        // check for output
+        if (!m_vm.count("output"))
+        {
+            // requre an output
+            std::cerr << "An output file is required." << std::endl;
+            return 1;
+        }
+        
         RopScriptShared ast = parse(source.c_str(), target->manifest()->arch_bitlen());
         
         CodeGenerator generator;
-        generator.compile(ast, target);
+        ProgramPtr exec = generator.compile(ast, target);
+        
         std::cout << "TARGET: " << target->name();
+        
+        std::ofstream out(output);
+        exec->write(out);
+        out.close();
     }
  
     // catch any exceptions

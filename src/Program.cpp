@@ -2,19 +2,14 @@
 
 std::ostream& operator<<(std::ostream& stream, const RopFileHeader& header)
 {
-    stream  << header.magic << header.version << header.reserved1 << header.reserved2
-            << header.dsize << header.daddr << header.csize << header.centry;
-            
+    stream.write(reinterpret_cast<const char *>(&header), sizeof(RopFileHeader));
     return stream;
 }
 
 std::ostream& operator<<(std::ostream& stream, const std::vector<u8>& data)
 {
-    for (auto it = data.begin(); it != data.end(); it++)
-    {
-        stream << *it;
-    }
-    
+    std::ostream_iterator<u8> output_iterator(stream);
+    std::copy(data.begin(), data.end(), output_iterator);
     return stream;
 }
 
