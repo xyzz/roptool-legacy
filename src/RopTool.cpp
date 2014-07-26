@@ -33,6 +33,12 @@ void RopTool::set_output(const std::string& output)
     this->output = output;
 }
 
+void RopTool::set_base(const std::string& address)
+{
+    // \TODO: error check
+    base_address = std::stoull(address, nullptr, 0);
+}
+
 RopTool::cmd_options RopTool::get_options(void)
 {
     // check if there are any options already created by this function
@@ -48,6 +54,7 @@ RopTool::cmd_options RopTool::get_options(void)
     m_options->add_options()
         ("help,h", "Show this help dialog.")
         ("verbose,v", "Show verbose output.")
+        ("link,x", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_base, this, _1)), "The address to link the data section.")
         ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.")
         ("source,s", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_source, this, _1)), "Source ropscript file to compile.")
         ("output,o", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_output, this, _1)), "Path to output file.");
@@ -102,8 +109,13 @@ int RopTool::start(int argc, char *argv[])
         CodeGenerator generator;
         ProgramPtr exec = generator.compile(ast, target);
         
-        std::cout << "TARGET: " << target->name();
+        if (!m_vm.count("link"))
+        {
+            base_address = 0xDAEEDAEEDAEEDAEELL;
+            std::cout << "No link address specified, using: 0x" << std::hex << base_address << std::endl;
+        }
         
+        exec->data().setBase(base_address);
         std::ofstream out(output);
         exec->write(out);
         out.close();
