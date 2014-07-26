@@ -87,7 +87,7 @@ std::vector<u64> XmlGadgetMap::stack(void)
             
             // get the address
             value = (*gadget_it)->address();
-            std::cout << "gadget: " << value << "\n";
+            std::cout << "gadget: " << std::hex << value << "\n";
         }
         
         // check if its a numeric value
@@ -118,6 +118,11 @@ void XmlGadgetMap::setFunction(Function address)
 {
     // add definition
     m_definitions["FUNC_ADDRESS"] = address;
+}
+
+void XmlGadgetMap::setReturnGadget(GadgetPtr gadget)
+{
+    m_definitions["RETURN_ADDRESS"] = gadget->address();
 }
 
 void XmlGadgetMap::setParameters(DataRefPtrList refs)

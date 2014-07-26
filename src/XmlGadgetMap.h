@@ -34,6 +34,7 @@ class XmlGadgetMap : public GadgetMap
         // setters
         void setFunction(Function address);
         void setParameters(DataRefPtrList refs);
+        void setReturnGadget(GadgetPtr gadget);
         
         std::vector<u64> stack(void);
         

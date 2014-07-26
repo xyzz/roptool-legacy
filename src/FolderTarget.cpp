@@ -67,6 +67,7 @@ void FolderTarget::readGadgetMaps(void)
             // parse gadgetmap
             gadgetmap->addGadgets(m_gadgets);
             gadgetmap->parse(p.string());
+            gadgetmap->setReturnGadget(getCallerGadget());
             std::cout << "gadgetmap\n";
         }
         

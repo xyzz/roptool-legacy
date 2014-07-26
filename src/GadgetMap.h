@@ -36,6 +36,7 @@ class GadgetMap
         // setters
         virtual void setFunction(Function address) = 0;
         virtual void setParameters(DataRefPtrList refs) = 0;
+        virtual void setReturnGadget(GadgetPtr gadget) = 0;
         
         // clone
         virtual GadgetMapPtr clone(void) const = 0;
