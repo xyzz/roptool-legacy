@@ -178,6 +178,7 @@ void CodeGenerator::visit_exit(CallDecl *param)
 void CodeGenerator::visit_enter(CodeDecl *param)
 {
     m_rop_func.reset(new RopFunction);
+    m_rop_func->setName(param->name());
 }
 
 void CodeGenerator::visit_exit(CodeDecl *param)
