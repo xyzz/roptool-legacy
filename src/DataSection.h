@@ -23,6 +23,11 @@ class DataSection
         // add string
         DataRefPtr add(const std::string& str);
         
+        // getters
+        u64 size(void);
+        u64 base(void);
+        const std::vector<u8>& data(void);
+        
     private:
         u64 m_ref_id_count, m_base_address;
         std::vector<unsigned char> m_data;

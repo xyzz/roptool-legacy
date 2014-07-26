@@ -52,6 +52,22 @@ DataRefPtr DataSection::add(const std::string& str)
     return ref;
 }
 
+u64 DataSection::size(void)
+{
+    return m_data.size();
+}
+
+
+u64 DataSection::base(void)
+{
+    return m_base_address;
+}
+
+const std::vector<u8>& DataSection::data(void)
+{
+    return m_data;
+}
+
 DataSection::DataSection(void)
 {
     m_ref_id_count = 1;
