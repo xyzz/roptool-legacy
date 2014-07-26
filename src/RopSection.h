@@ -11,7 +11,8 @@ class RopSection
 {
     public:
         bool add(const RopFunctionPtr& func);
-       
+        RopFunctionPtrList functions(void);
+        
     private:
         RopFunctionPtrList m_funcs;
 };

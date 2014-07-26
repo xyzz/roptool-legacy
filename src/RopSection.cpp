@@ -21,3 +21,8 @@ bool RopSection::add(const RopFunctionPtr& func)
     m_funcs.push_back(func);
     return true;
 }
+
+RopFunctionPtrList RopSection::functions(void)
+{
+    return m_funcs;
+}
