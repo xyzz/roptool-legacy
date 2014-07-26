@@ -215,6 +215,7 @@ ProgramPtr CodeGenerator::compile(VisitablePtr ast, TargetPtr target)
 {
     // create new program
     m_gen_program.reset(new Program);
+    m_gen_program->setTarget(target);
     
     // create a zero ref
     m_zero_ref = m_gen_program->data().add(0);
