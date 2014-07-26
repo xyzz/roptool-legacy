@@ -1,5 +1,5 @@
-#ifndef _COMPILER_H_
-#define _COMPILER_H_
+#ifndef _CODE_GENERATOR_H_
+#define _CODE_GENERATOR_H_
 
 #include "AST.h"
 #include "Target.h"
@@ -10,11 +10,11 @@
 #include <memory>
 #include <string>
 
-class Compiler : public ASTVisitor
+class CodeGenerator : public ASTVisitor
 {
     public:
         // CTOR
-        Compiler(void) { }
+        CodeGenerator(void) { }
         
         // compile
         void compile(VisitablePtr m_ast, TargetPtr m_target);
@@ -56,4 +56,4 @@ class Compiler : public ASTVisitor
         DataRefPtrList m_param;
 };
 
-#endif // _COMPILER_H_
+#endif // _CODE_GENERATOR_H_

@@ -2,7 +2,7 @@
 #include "RopTool.h"
 #include "Parser.h"
 #include "FolderTarget.h"
-#include "Compiler.h"
+#include "CodeGenerator.h"
 #include "Debug.h"
 
 // std
@@ -84,8 +84,8 @@ int RopTool::start(int argc, char *argv[])
         
         RopScriptShared ast = parse(source.c_str(), target->manifest()->arch_bitlen());
         
-        Compiler compiler;
-        compiler.compile(ast, target);
+        CodeGenerator generator;
+        generator.compile(ast, target);
         std::cout << "TARGET: " << target->name();
     }
  

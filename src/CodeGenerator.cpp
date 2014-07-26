@@ -1,5 +1,5 @@
 // roptool
-#include "Compiler.h"
+#include "CodeGenerator.h"
 #include "DataSection.h"
 #include "RopFunction.h"
 #include "RopFunctionCall.h"
@@ -9,13 +9,13 @@
 #include <sstream>
 
 
-u64 Compiler::bit_mask(int bits)
+u64 CodeGenerator::bit_mask(int bits)
 {
     u64 mask = 0xFFFFFFFFFFFFFFFFUL;
     return mask >> (64 - bits); 
 }
 
-void Compiler::visit(StringParameter *param)
+void CodeGenerator::visit(StringParameter *param)
 {
     int param_bits = param->bitlen();
     int arch_bits = m_target->manifest()->arch_bitlen();
@@ -44,7 +44,7 @@ void Compiler::visit(StringParameter *param)
     m_param.push_back(ref);
 }
 
-void Compiler::visit(ConstantParameter *param)
+void CodeGenerator::visit(ConstantParameter *param)
 {
     std::list<DataRefPtr> refs;
     int param_bits = param->bitlen();
@@ -72,7 +72,7 @@ void Compiler::visit(ConstantParameter *param)
     }
 }
 
-void Compiler::visit(ReturnParameter *param)
+void CodeGenerator::visit(ReturnParameter *param)
 {
     int param_bits = param->bitlen();
     int arch_bits = m_target->manifest()->arch_bitlen();
@@ -99,7 +99,7 @@ void Compiler::visit(ReturnParameter *param)
     m_param.push_back(m_zero_ref);
 }
 
-void Compiler::visit(InlineLoadParameter *param)
+void CodeGenerator::visit(InlineLoadParameter *param)
 {
     int param_bits = param->bitlen();
     int arch_bits = m_target->manifest()->arch_bitlen();
@@ -128,7 +128,7 @@ void Compiler::visit(InlineLoadParameter *param)
     m_param.push_back(ref);
 }
 
-void Compiler::visit_enter(CallDecl *param)
+void CodeGenerator::visit_enter(CallDecl *param)
 {
     m_param_type.clear();
     m_param.clear();
@@ -144,7 +144,7 @@ void Compiler::visit_enter(CallDecl *param)
     }
 }
 
-void Compiler::visit_exit(CallDecl *param)
+void CodeGenerator::visit_exit(CallDecl *param)
 {
     // add a null terminator and construct string
     m_param_type.push_back('\0');
@@ -175,17 +175,17 @@ void Compiler::visit_exit(CallDecl *param)
     m_rop_func->add(function_call);
 }
 
-void Compiler::visit_enter(CodeDecl *param)
+void CodeGenerator::visit_enter(CodeDecl *param)
 {
     m_rop_func.reset(new RopFunction);
 }
 
-void Compiler::visit_exit(CodeDecl *param)
+void CodeGenerator::visit_exit(CodeDecl *param)
 {
     m_rop_section.add(m_rop_func);
 }
 
-void Compiler::visit(FunctionDataDecl *param)
+void CodeGenerator::visit(FunctionDataDecl *param)
 {
     bool redefined = !m_functions.insert(std::pair<std::string, Function>(param->name(), param->getData())).second;
     
@@ -195,7 +195,7 @@ void Compiler::visit(FunctionDataDecl *param)
     }
 }
 
-void Compiler::visit(DataDecl *param)
+void CodeGenerator::visit(DataDecl *param)
 {
     // 
     m_functions.clear();
@@ -204,7 +204,7 @@ void Compiler::visit(DataDecl *param)
     std::cout << "DataDecl start" << std::endl;
 }
 
-void Compiler::visit_enter(RopScript *param)
+void CodeGenerator::visit_enter(RopScript *param)
 {
     // create new data section and code section
     //m_data.reset(new DataSection());
@@ -212,7 +212,7 @@ void Compiler::visit_enter(RopScript *param)
     std::cout << "RopScript start" << std::endl;
 }
 
-void Compiler::visit_exit(RopScript *param)
+void CodeGenerator::visit_exit(RopScript *param)
 {
     // create new data section and code section
     //m_data.reset(new DataSection());
@@ -220,7 +220,7 @@ void Compiler::visit_exit(RopScript *param)
     std::cout << "RopScript exit" << std::endl;
 }
 
-void Compiler::compile(VisitablePtr ast, TargetPtr target)
+void CodeGenerator::compile(VisitablePtr ast, TargetPtr target)
 {
     // get a reference to zero
     m_zero_ref = m_data_section.add(0);
