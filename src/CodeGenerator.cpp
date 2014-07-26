@@ -21,7 +21,7 @@ void CodeGenerator::visit(StringParameter *param)
     int arch_bits = m_target->manifest()->arch_bitlen();
     
     // add string to data section
-    DataRefPtr ref = m_data_section.add(param->value());
+    DataRefPtr ref = m_gen_program->data().add(param->value());
     
     // store
     int param_n = param_bits / arch_bits;
@@ -64,7 +64,7 @@ void CodeGenerator::visit(ConstantParameter *param)
     // create a list
     for (int i = 0; i < param_n; i++)
     {
-        DataRefPtr ref = m_data_section.add((param->value() >> ((param_n-i-1) * arch_bits)) & bit_mask(arch_bits));
+        DataRefPtr ref = m_gen_program->data().add((param->value() >> ((param_n-i-1) * arch_bits)) & bit_mask(arch_bits));
         
         // add reference to list
         m_param_type.push_back('v');
@@ -105,7 +105,7 @@ void CodeGenerator::visit(InlineLoadParameter *param)
     int arch_bits = m_target->manifest()->arch_bitlen();
     
     // get constant ref
-    DataRefPtr ref = m_data_section.add(param->value());
+    DataRefPtr ref = m_gen_program->data().add(param->value());
     
     // store
     int param_n = param_bits / arch_bits;
@@ -182,7 +182,7 @@ void CodeGenerator::visit_enter(CodeDecl *param)
 
 void CodeGenerator::visit_exit(CodeDecl *param)
 {
-    m_rop_section.add(m_rop_func);
+    m_gen_program->code().add(m_rop_func);
 }
 
 void CodeGenerator::visit(FunctionDataDecl *param)
@@ -197,34 +197,31 @@ void CodeGenerator::visit(FunctionDataDecl *param)
 
 void CodeGenerator::visit(DataDecl *param)
 {
-    // 
-    m_functions.clear();
-    
-    
+    m_functions.clear();   
     std::cout << "DataDecl start" << std::endl;
 }
 
 void CodeGenerator::visit_enter(RopScript *param)
 {
-    // create new data section and code section
-    //m_data.reset(new DataSection());
-    //m_code.reset(new CodeSection());
     std::cout << "RopScript start" << std::endl;
 }
 
 void CodeGenerator::visit_exit(RopScript *param)
 {
-    // create new data section and code section
-    //m_data.reset(new DataSection());
-    //m_code.reset(new CodeSection());
     std::cout << "RopScript exit" << std::endl;
 }
 
-void CodeGenerator::compile(VisitablePtr ast, TargetPtr target)
+ProgramPtr CodeGenerator::compile(VisitablePtr ast, TargetPtr target)
 {
-    // get a reference to zero
-    m_zero_ref = m_data_section.add(0);
+    // create new program
+    m_gen_program.reset(new Program);
     
+    // create a zero ref
+    m_zero_ref = m_gen_program->data().add(0);
     m_target = target;
+    
     ast->traverse(this);
+    
+    // return the final program
+    return m_gen_program;
 }

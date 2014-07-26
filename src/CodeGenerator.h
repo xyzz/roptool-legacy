@@ -3,8 +3,7 @@
 
 #include "AST.h"
 #include "Target.h"
-#include "DataSection.h"
-#include "RopSection.h"
+#include "Program.h"
 
 // std
 #include <memory>
@@ -17,7 +16,7 @@ class CodeGenerator : public ASTVisitor
         CodeGenerator(void) { }
         
         // compile
-        void compile(VisitablePtr m_ast, TargetPtr m_target);
+        ProgramPtr compile(VisitablePtr m_ast, TargetPtr m_target);
         
         // visitor methods
         void visit(StringParameter *param);
@@ -42,12 +41,13 @@ class CodeGenerator : public ASTVisitor
         std::map<std::string, Function> m_functions;
         
         // data section
-        DataSection m_data_section;
         DataRefPtr m_zero_ref;
         
         // rop section
-        RopSection m_rop_section;
         RopFunctionPtr m_rop_func;
+        
+        // the generated program
+        ProgramPtr m_gen_program;
         
         // this stores the function call param types
         std::vector<char> m_param_type;
