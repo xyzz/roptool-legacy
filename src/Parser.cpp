@@ -392,7 +392,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         
         // string parsers
         string = qi::lexeme['"' >> +(qi::char_ - '"') >> '"'];
-        quoted_string = qi::lexeme[qi::char_('"') >> +(qi::char_ - '"') >> qi::char_('"')];
+        quoted_string = qi::lexeme[qi::lit('"') >> +(qi::char_ - '"') >> qi::lit('"')];
        
         // define what is classed as an identifier
         // this will include function call names, variable names
