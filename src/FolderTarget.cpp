@@ -4,6 +4,9 @@
 #include "XmlGadgetMap.h"
 #include "XmlTargetManifest.h"
 
+// std
+#include <iostream>
+
 namespace fs = boost::filesystem;
 
 FolderTarget::DirectoryList FolderTarget::read_directory(const fs::path& dir)
@@ -75,9 +78,20 @@ void FolderTarget::readGadgetMaps(void)
         m_gadgetmaps.push_back(gadgetmap);
     });
     
-    // sort by size
+    // sort by size giving priority to functions
     std::sort(m_gadgetmaps.begin(), m_gadgetmaps.end(), [=](GadgetMapPtr i, GadgetMapPtr j) -> bool
     {
+        if (i->isFunction() && !j->isFunction())
+        {
+            return true;
+        }
+        
+        else if (!i->isFunction() && j->isFunction())
+        {
+            return false;
+        }
+        
+        // either both are function or both are not, we just compare by size
         return (i->size() < j->size());
     });
 }
@@ -128,6 +142,17 @@ GadgetPtr FolderTarget::getCallerGadget(void)
     
     // return the gadget
     return *it;
+}
+
+bool FolderTarget::isFunction(const std::string& function) const
+{
+    auto it = std::find_if(m_gadgetmaps.begin(), m_gadgetmaps.end(), [=](GadgetMapPtr map) -> bool
+    {
+        return (map->function() == function);
+    });
+    
+    // true if we found a match
+    return !(it == m_gadgetmaps.end());
 }
 
 void FolderTarget::setName(const std::string& name)

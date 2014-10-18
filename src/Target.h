@@ -28,6 +28,8 @@ class Target
         
         virtual GadgetPtr getCallerGadget(void) = 0;
         
+        virtual bool isFunction(const std::string& function) const = 0;
+        
         /* GadgetMapList gadgetMaps(void) = 0;
         GadgetList gadgets(void) = 0; */
     

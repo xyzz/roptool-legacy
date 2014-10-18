@@ -31,7 +31,9 @@ class GadgetMap
         virtual void addGadgets(GadgetPtrList gadgets) = 0;
         
         // get size
-        virtual int size(void) = 0;
+        virtual int size(void) const = 0;
+        virtual bool isFunction(void) const = 0;
+        virtual const std::string& function(void) const = 0;
         
         // setters
         virtual void setFunction(Function address) = 0;

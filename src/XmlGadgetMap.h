@@ -29,7 +29,9 @@ class XmlGadgetMap : public GadgetMap
         
         boost::regex regex(void);
         void addGadgets(GadgetPtrList gadgets);
-        int size(void) { return m_stack.size(); }
+        int size(void) const { return m_stack.size(); }
+        bool isFunction(void) const { return (m_function.length() != 0); }
+        const std::string& function(void) const { return m_function; }
         
         // setters
         void setFunction(Function address);
@@ -48,12 +50,13 @@ class XmlGadgetMap : public GadgetMap
         boost::regex m_regex;
         std::list<std::string> m_stack;
         std::map<std::string, u64> m_definitions;
-        
+        std::string m_function;
         
         XmlGadgetMap(const XmlGadgetMap& rhs);
         
         void set_regex(const std::string& regex_str);
         void add_stack_data(const std::string& stack_data);
+        void set_function(const std::string& name);
 };
 
 #endif // _XML_GADGET_MAP_H_

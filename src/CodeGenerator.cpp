@@ -132,9 +132,9 @@ void CodeGenerator::visit_enter(CallDecl *param)
 {
     m_param_type.clear();
     m_param.clear();
-    
+
     // check function name is resolvable
-    if (m_functions.find(param->name()) == m_functions.end())
+    if (m_functions.find(param->name()) == m_functions.end() && !m_target->isFunction(param->name()))
     {
         std::string err_msg;
         err_msg = err_msg + "Name: \"" + param->name() + "\" not found!";
@@ -167,8 +167,13 @@ void CodeGenerator::visit_exit(CallDecl *param)
     
     // set function call data
     function_call->setMap(map);
-    function_call->setFunction(m_functions.find(param->name())->second);
     function_call->setParameters(m_param);
+    
+    // if its not a function map, we need to give it a function
+    if (!map->isFunction())
+    {
+        function_call->setFunction(m_functions.find(param->name())->second);
+    }
     
     std::cout << "map size: " << map->size() << "\n";
     
@@ -188,6 +193,12 @@ void CodeGenerator::visit_exit(CodeDecl *param)
 
 void CodeGenerator::visit(FunctionDataDecl *param)
 {
+    // first we check if its redefining a gadgetmap function
+    if (m_target->isFunction(param->name()))
+    {
+        std::cout << "function '" << param->name() << "' is defined by gadgetmap" << std::endl;
+    }
+    
     bool redefined = !m_functions.insert(std::pair<std::string, Function>(param->name(), param->getData())).second;
     
     if (redefined)

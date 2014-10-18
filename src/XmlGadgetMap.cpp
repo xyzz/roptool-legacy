@@ -2,6 +2,7 @@
 #include "XmlGadgetMap.h"
 
 // std
+#include <iostream>
 #include <cstdlib>
 #include <stdexcept>
 #include <algorithm>
@@ -141,6 +142,11 @@ void XmlGadgetMap::setParameters(DataRefPtrList refs)
     });
 }
 
+void XmlGadgetMap::set_function(const std::string& name)
+{
+    m_function = name;
+}
+
 void XmlGadgetMap::add_stack_data(const std::string& stack_str)
 {
     // stack_str:
@@ -170,6 +176,7 @@ XmlGadgetMap::XmlGadgetMap(void)
     
     // add handlers
     m_visitor->addHandler("gadgetmap-regex", std::bind(&XmlGadgetMap::set_regex, this, _1), true);
+    m_visitor->addHandler("gadgetmap-function", std::bind(&XmlGadgetMap::set_function, this, _1), false);
     m_visitor->addHandler("gadgetmap-stack-data", std::bind(&XmlGadgetMap::add_stack_data, this, _1), true);
 }
 
@@ -182,6 +189,7 @@ XmlGadgetMap::XmlGadgetMap(const XmlGadgetMap& rhs)
     
     // add handlers
     m_visitor->addHandler("gadgetmap-regex", std::bind(&XmlGadgetMap::set_regex, this, _1), true);
+    m_visitor->addHandler("gadgetmap-function", std::bind(&XmlGadgetMap::set_function, this, _1), false);
     m_visitor->addHandler("gadgetmap-stack-data", std::bind(&XmlGadgetMap::add_stack_data, this, _1), true);
 
     // copy data
@@ -189,6 +197,7 @@ XmlGadgetMap::XmlGadgetMap(const XmlGadgetMap& rhs)
     m_gadgets = rhs.m_gadgets;
     m_regex = rhs.m_regex;
     m_definitions = rhs.m_definitions;
+    m_function = rhs.m_function;
 }
 
 XmlGadgetMap::~XmlGadgetMap(void)

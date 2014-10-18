@@ -32,6 +32,9 @@ class FolderTarget : public Target
         // get the caller gadget
         GadgetPtr getCallerGadget(void);
         
+        // check if target defines function
+        bool isFunction(const std::string& function) const;
+        
     private:
         std::string m_name;
         std::string m_path;
