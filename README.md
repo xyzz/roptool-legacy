@@ -87,9 +87,9 @@ The `<regex>` string defines the parameters that the gadgetmap can handle. In th
 
 So the above gadgetmap supports any function as long as it only as upto a maximum of 9 constant values. A gadgetmap doesn't need to be vastly generic and support everything, its recommended to start off with generic-like maps but once tools are developed more specific gadgets can be generated. In cases where a function like: "*myfunc(vv)*" have two applicable gadgetmaps, the compiler will pick the smallest map.
 
-In addition, gadgetmaps can have an optional <function> tag. This means that scripts can directly invoke a gadgetmap if it performs a very specific function.
+In addition, gadgetmaps can have an optional `<function>` tag. This means that scripts can directly invoke a gadgetmap if it performs a very specific function.
 
-The <stack> elements contains a number of <data> elements and describes the memory layout of the gadget. each <data> element can either contain: a constant number, a **GADGET_ADDRESS**, a **FUNC_ADDRESS**, a **RETURN_ADDRESS** or an argument in the form of **ARGX**, where X is the argument number.
+The `<stack>` elements contains a number of `<data>` elements and describes the memory layout of the gadget. each `<data>` element can either contain: a constant number, a **GADGET_ADDRESS**, a **FUNC_ADDRESS**, a **RETURN_ADDRESS** or an argument in the form of **ARGX**, where X is the argument number.
 
 **GADGET_ADDRESS** is how you will directly reference a gadget. When you do this, the address of the gadget take its place during compilation.
 
@@ -175,7 +175,7 @@ Whilst this is true for ropscript, it is only true if x, y and z are **ALL** con
     send(RET);
 
 
-notice the use of `LOAD[z]`, this is because symbols can only represent constant values. If you use symbol to represent an address to store the value, you can use LOAD[symbol] to treat it like a variable.
+notice the use of `LOAD[z]`, this is because symbols can only represent constant values. If you use symbol to represent an address to store the value, you can use `LOAD[symbol]` to treat it like a variable.
 
 as you can see, the keyword `RET` is passed to send. This represents the return from the call before. As such, `RET` is undefined on the first function call in the code section and the duration that `RET` is valid is only 1 call. If you need to preserve a return value you must save it to memory or use it in the next instruction. This is invalid:
 
@@ -205,6 +205,6 @@ So entirely a ropscript would look like:
     }
 
 ###**[Extras]**
-`--sled` option: allows to prepend a sled consisting of caller_gadgets. You define the size of the sled and the code generator will produce this.
+`--sled` option: allows to prepend a sled consisting of *caller_gadgets*. You define the size of the sled and the code generator will produce this.
 
 `--aslr`: WIP
