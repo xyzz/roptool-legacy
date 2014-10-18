@@ -344,7 +344,7 @@ struct ropscript_grammar : qi::grammar<Iterator, RopScriptImpl(), skip_grammar<I
         return_param = qi::char_('R') > qi::char_('E') > qi::char_('T');
         expression_param = expression;
         //symbol_param = identifier;
-        inline_load = qi::lexeme[qi::lit("LOAD") > qi::lit('[') > number > qi::lit(']')];
+        inline_load = qi::lit("LOAD") > qi::lit('[') > (expression) > qi::lit(']');
         
         // data section rules
         data_section = qi::lit("data") > '{' > *func_decl >  *symbol_decl > '}';
