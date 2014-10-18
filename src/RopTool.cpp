@@ -39,6 +39,11 @@ void RopTool::set_base(const std::string& address)
     base_address = std::stoull(address, nullptr, 0);
 }
 
+void RopTool::set_sled_length(const std::string& sled_length)
+{
+    m_sled_length = std::stoul(sled_length, nullptr, 0);
+}
+
 RopTool::cmd_options RopTool::get_options(void)
 {
     // check if there are any options already created by this function
@@ -54,6 +59,7 @@ RopTool::cmd_options RopTool::get_options(void)
     m_options->add_options()
         ("help,h", "Show this help dialog.")
         ("verbose,v", "Show verbose output.")
+        ("sled,n", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_sled_length, this, _1)), "Size of nop sled.")
         ("link,x", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_base, this, _1)), "The address to link the data section.")
         ("target,t", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_target, this, _1)), "Path to the target to build against.")
         ("source,s", po::value<std::string>()->composing()->notifier(boost::bind(&RopTool::set_source, this, _1)), "Source ropscript file to compile.")
@@ -113,6 +119,11 @@ int RopTool::start(int argc, char *argv[])
         {
             base_address = 0xDAEEDAEEDAEEDAEELL;
             std::cout << "No link address specified, using: 0x" << std::hex << base_address << std::endl;
+        }
+        
+        if (m_vm.count("sled"))
+        {
+            exec->addSled(m_sled_length);
         }
         
         exec->data().setBase(base_address);

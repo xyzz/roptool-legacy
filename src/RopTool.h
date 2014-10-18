@@ -25,11 +25,13 @@ class RopTool
         void set_source(const std::string& source);
         void set_output(const std::string& output);
         void set_base(const std::string& address);
+        void set_sled_length(const std::string& sled_length);
         
         // variables
         TargetPtr target;
         std::string source, output;
         u64 base_address;
+        u32 m_sled_length;
         
         // we have a variable map and options
         boost::program_options::variables_map m_vm;

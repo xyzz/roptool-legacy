@@ -31,6 +31,8 @@ class Program
         // write only
         void write(std::ostream& stream);
         
+        void addSled(u32 length);
+        
         // mutators
         void setTarget(TargetPtr target);
         
@@ -43,6 +45,7 @@ class Program
         DataSection m_data_section;
         RopSection m_rop_section;
         TargetPtr m_target;
+        std::vector<u8> m_sled;
         
         std::vector<u8> generate_rop_binary(void);
 };

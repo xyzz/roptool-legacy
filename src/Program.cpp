@@ -33,6 +33,27 @@ TargetPtr Program::target(void)
     return m_target;
 }
 
+void Program::addSled(u32 length)
+{
+    m_sled.clear();
+    
+    // get the caller gadget
+    u64 addr = m_target->getCallerGadget()->address();
+    const u8 *p = reinterpret_cast<const u8 *>(&addr);
+    
+    // calculate the number of writes
+    int writes = length;
+    int arch_bytes = m_target->manifest()->arch_bitlen()/8;
+    int align = m_target->manifest()->stack_alignment();
+    while ((writes % arch_bytes) || (writes % align)) writes++;
+    
+    // add a sled of the specified length
+    for (int i = 0; i < writes; i++)
+    {
+        m_sled.push_back(p[i % arch_bytes]);
+    }
+}
+
 void Program::write(std::ostream& stream)
 {
     RopFileHeader header;
@@ -48,10 +69,10 @@ void Program::write(std::ostream& stream)
     
     // deal with rop section
     std::vector<u8> rop_binary = generate_rop_binary();
-    header.csize = rop_binary.size();
+    header.csize = m_sled.size() + rop_binary.size();
     header.centry = m_target->getCallerGadget()->address();
     
-    stream << header << data().data() << rop_binary;
+    stream << header << data().data() << m_sled << rop_binary;
 }
 
 std::vector<u8> Program::generate_rop_binary(void)
