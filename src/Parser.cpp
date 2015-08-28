@@ -520,8 +520,9 @@ RopScriptShared parse(const char *filename, WordLength bitlen)
     // check if open failure
     if (!ifs)
     {
-        std::cerr << "Error: Could not open input file: " << filename << std::endl;
-        return false;
+        std::stringstream msg;
+        msg << "Error: Could not open input file: " << filename;
+        throw std::runtime_error(msg.str());;
     }
         
     typedef std::istreambuf_iterator<char> base_iterator_type;

@@ -17,6 +17,11 @@
 #include <Windows.h>
 #endif
 
+// osx
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 class Target
 {
     public:
@@ -42,6 +47,9 @@ class Target
             GetModuleFileName(NULL, &data[0], sizeof(data));
 #elif defined __linux__
             readlink("/proc/self/exe", data, sizeof(data));
+#elif defined __APPLE__
+            unsigned int size = 256;
+            _NSGetExecutablePath(data, &size);
 #endif
 
             return boost::filesystem::path(data).parent_path().string()+"/pkg";
