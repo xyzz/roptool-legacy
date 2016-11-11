@@ -159,7 +159,7 @@ void FolderTarget::setName(const std::string& name)
 {
     // set name
     m_name = name;
-    m_path = target_folder() + "/" + name;
+    m_path = name;
     
     // read manifest
     readManifest();
