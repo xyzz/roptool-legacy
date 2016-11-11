@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
-PROJECT (roptool)
+PROJECT (roptool-legacy)
 
 ###########################################################
 ##
@@ -24,7 +24,7 @@ SET(BUILD_STATIC_LIBS ON)
 ADD_SUBDIRECTORY (tinyxml2)
 
 FILE (GLOB ROPTOOL_SOURCES "src/*.cpp")                                                                              
-ADD_EXECUTABLE (roptool ${ROPTOOL_SOURCES})
-TARGET_LINK_LIBRARIES (roptool ${Boost_LIBRARIES} tinyxml2static) 
+ADD_EXECUTABLE (roptool-legacy ${ROPTOOL_SOURCES})
+TARGET_LINK_LIBRARIES (roptool-legacy ${Boost_LIBRARIES} tinyxml2static) 
 
-add_dependencies(roptool tinyxml2static)
+add_dependencies(roptool-legacy tinyxml2static)
